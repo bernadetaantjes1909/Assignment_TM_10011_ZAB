@@ -5,7 +5,7 @@
 #%% Data loading functions. Uncomment the one you want to use
 #from worcgist.load_data import load_data
 #from worclipo.load_data import load_data
-#from worcliver.load_data import load_data
+from worcliver.load_data import load_data
 #from hn.load_data import load_data
 #from ecg.load_data import load_data
 
