@@ -19,6 +19,7 @@ def preprocessing_data(data):
 data_train, data_test, classification_train, classification_test = train_test_split(
     X, y, test_size=0.20, random_state=42, stratify=y #door 42 is een standaard random dan hou je de zelfde manier 
 )
+
 #%%
 # scaling data
     scaler = preprocessing.RobustScaler()
