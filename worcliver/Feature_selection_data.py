@@ -20,39 +20,45 @@ from Preprocessing_data import preprocessing_data
 data = load_data()
 train_data_scaled, test_data_scaled, classification_train, classification_test= preprocessing_data(data)
 
-#%%
-#feature selection - amount of features
-# RFE object:
-def feature_selection_data (train_data_scaled, test_data_scaled,classification_train):
-    svc = svm.SVC(kernel="linear")
-    rfecv = feature_selection.RFECV(
-        estimator=svc, step=1,
-        cv=model_selection.StratifiedKFold(4),
-        scoring='roc_auc')
-    rfecv.fit(train_data_scaled,classification_train)
 
-# Plot number of features VS. cross-validation scores
-    plt.figure()
-    plt.xlabel("Number of features selected")
-    plt.ylabel("Cross validation score (nb of correct classifications)")
-    plt.plot(range(1, len(rfecv.cv_results_["mean_test_score"]) + 1), rfecv.cv_results_["mean_test_score"])
-    plt.show()
-    optimal = rfecv.n_features_
-    print(optimal)
+
+#%%
+def feature_selection_data (train_data_scaled, test_data_scaled,classification_train):
+# Variance and deleting features
+    Variance = np.var(train_data_scaled, axis=0)
+    zero_indices = np.where(Variance < 0.01)[0]
+    train_data_filtered = np.delete(train_data_scaled, zero_indices, axis=1)
+    test_data_filtered = np.delete(test_data_scaled, zero_indices, axis=1)
+
+#Recursive Feature Elimination: 
+# RFE object:
+    # svc = svm.SVC(kernel="linear")
+    # rfecv = feature_selection.RFECV(
+    #     estimator=svc, step=1,
+    #     cv=model_selection.StratifiedKFold(4),
+    #     scoring='accuracy')
+    # rfecv.fit(train_data_filtered,classification_train)
+    # optimal = rfecv.n_features_
+    # train_data_elimination = train_data_scaled[:, rfecv.support_]
+    # test_data_elimination  = test_data_scaled[:, rfecv.support_]
+
+    # print(f"optimal amount of features is {optimal}")
 
 #principle component analysis
     from sklearn import decomposition
 
-    pca = decomposition.PCA(n_components=optimal)
-    pca.fit(train_data_scaled)
-    X_train_pca = pca.transform(train_data_scaled)
-    X_test_pca = pca.transform(test_data_scaled)
+    pca = decomposition.PCA(n_components=20)
+    pca.fit(train_data_filtered)
+    X_train_pca = pca.transform(train_data_filtered)
+    X_test_pca = pca.transform(test_data_filtered)
 
     return X_train_pca,X_test_pca
 
+#%%
+X_train_pca,X_test_pca = feature_selection_data (train_data_scaled, test_data_scaled,classification_train)
+print(X_train_pca.shape)
+print(X_test_pca.shape)
 
-
-# # %%
 # # feature selection - importance
 # forest = RandomForestClassifier(n_estimators=100)
 
