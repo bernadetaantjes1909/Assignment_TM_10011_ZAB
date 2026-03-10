@@ -15,7 +15,7 @@ from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
 
 from load_data import load_data
-from Preprocessing_data import preprocessing_data
+from worcliver.Preprocessing_data import preprocessing_data
 
 data = load_data()
 train_data_scaled, test_data_scaled, classification_train, classification_test= preprocessing_data(data)
@@ -54,10 +54,6 @@ def feature_selection_data (train_data_scaled, test_data_scaled,classification_t
 
     return X_train_pca,X_test_pca
 
-#%%
-X_train_pca,X_test_pca = feature_selection_data (train_data_scaled, test_data_scaled,classification_train)
-print(X_train_pca.shape)
-print(X_test_pca.shape)
 
 # # feature selection - importance
 # forest = RandomForestClassifier(n_estimators=100)
