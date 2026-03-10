@@ -16,31 +16,15 @@ from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
 
 from load_data import load_data
+from Preprocessing_data import preprocessing_data
 
 data = load_data()
 
 # %%
-#split data
-data_train, data_test, classification_train, classification_test = model_selection.train_test_split(data.iloc[:,2:], data['label'])
-
-print(len(data_train))
-print(len(data_test))
-print(len(list(data_train.columns)))
-print(classification_train.dtype)
-
-#%%
-# scaling data
-def scaling_data(data_train, data_test):
-    
-    scaler = preprocessing.RobustScaler()
-    scaler.fit(data_train)
-    train_data_scaled = scaler.transform(data_train)
-    test_data_scaled = scaler.transform(data_test)
-    return train_data_scaled, test_data_scaled
+train_data_scaled, test_data_scaled, classification_train, classification_test= preprocessing_data(data)
 
 #%%
 #feature selection - amount of features
-train_data_scaled, test_data_scaled = scaling_data(data_train, data_test)
 # RFE object:
 svc = svm.SVC(kernel="linear")
 rfecv = feature_selection.RFECV(
