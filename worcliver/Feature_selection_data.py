@@ -14,45 +14,55 @@ from sklearn import neighbors
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
 
-from load_data import load_data
-from worcliver.Preprocessing_data import preprocessing_data
-
-data = load_data()
-train_data_scaled, test_data_scaled, classification_train, classification_test= preprocessing_data(data)
-
-
-
-#%%
-def feature_selection_data (train_data_scaled, test_data_scaled,classification_train):
 # Variance and deleting features
+# This function is used in all feature selection techniques below:
+def deleting_zero_variance(load_data,preprocessing_data):
+    train_data_scaled,test_data_scaled, classification_train, classification_test = preprocessing_data(load_data)
     Variance = np.var(train_data_scaled, axis=0)
     zero_indices = np.where(Variance < 0.01)[0]
     train_data_filtered = np.delete(train_data_scaled, zero_indices, axis=1)
     test_data_filtered = np.delete(test_data_scaled, zero_indices, axis=1)
+    return train_data_filtered, test_data_filtered, classification_train, classification_test
 
-#Recursive Feature Elimination: 
-# RFE object:
-    # svc = svm.SVC(kernel="linear")
-    # rfecv = feature_selection.RFECV(
-    #     estimator=svc, step=1,
-    #     cv=model_selection.StratifiedKFold(4),
-    #     scoring='accuracy')
-    # rfecv.fit(train_data_filtered,classification_train)
-    # optimal = rfecv.n_features_
-    # train_data_elimination = train_data_scaled[:, rfecv.support_]
-    # test_data_elimination  = test_data_scaled[:, rfecv.support_]
 
-    # print(f"optimal amount of features is {optimal}")
+# feature selection using recursive feature elimination
+def feature_selection_RFE (load_data, preprocessing_data, deleting_zero_variance):
+    train_data_filtered, test_data_filtered, classification_train, classification_test  = deleting_zero_variance(load_data,preprocessing_data)
+   # RFE object:
+    svc = svm.SVC(kernel="linear")
+    rfecv = feature_selection.RFECV(
+        estimator=svc, step=1,
+        cv=model_selection.StratifiedKFold(4),
+        scoring='accuracy') # can be done because both classes occur equally in the dataset
+    rfecv.fit(train_data_filtered,classification_train)
+    optimal = rfecv.n_features_
+    train_data_elimination = train_data_filtered[:, rfecv.support_]
+    test_data_elimination  = test_data_filtered[:, rfecv.support_]
 
-#principle component analysis
-    from sklearn import decomposition
+    #print(f"optimal amount of features is {optimal}")
+    return train_data_elimination, test_data_elimination, classification_train, classification_test
+
+
+#feature selection with principle component analysis
+def feature_selection_PCA (load_data, preprocessing_data, deleting_zero_variance):
+    train_data_filtered, test_data_filtered, classification_train, classification_test = deleting_zero_variance(load_data ,preprocessing_data)
 
     pca = decomposition.PCA(n_components=20)
     pca.fit(train_data_filtered)
-    X_train_pca = pca.transform(train_data_filtered)
-    X_test_pca = pca.transform(test_data_filtered)
+    train_data_elimination = pca.transform(train_data_filtered)
+    test_data_elimination = pca.transform(test_data_filtered)
 
-    return X_train_pca,X_test_pca
+    return train_data_elimination, test_data_elimination, classification_train, classification_test
+
+# feature selection with LASSO?
+
+
+
+
+
+
+
+
 
 
 # # feature selection - importance

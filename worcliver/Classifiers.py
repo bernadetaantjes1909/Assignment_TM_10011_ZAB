@@ -18,28 +18,44 @@ from sklearn import preprocessing
 from sklearn import neighbors
 from sklearn import svm
 from sklearn.ensemble import RandomForestClassifier
-
-#%% load functions from other files
-from load_data import load_data
-from Preprocessing_data import preprocessing_data
-from Feature_selection_data import feature_selection_data
-
-#%% load functions
-data = load_data()
-#%%
-train_data_scaled, test_data_scaled, classification_train, classification_test= preprocessing_data(data)
-#%%
-X_train_pca,X_test_pca = feature_selection_data (train_data_scaled, test_data_scaled,classification_train)
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
 
 
 #%%
-rf = RandomForestClassifier()
-rf.fit(X_train_pca, classification_train)
-y_pred_train = rf.predict(X_train_pca)
-y_pred_test = rf.predict(X_test_pca)
+#random_forest_classifier
+def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance,feature_selection):
+    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection (load_data, preprocessing_data, deleting_zero_variance)
 
-t_train = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train).sum(), X_train_pca.shape[0]))
-t_test = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test).sum(), X_test_pca.shape[0]))
-print (t_train)
-print(t_test)
+    rf = RandomForestClassifier(random_state=42)
+
+    param_dist = {
+        "n_estimators": [100, 200, 300],
+        "max_depth": [None, 5, 10],
+        "min_samples_split": [2, 5],
+        "min_samples_leaf": [1, 2],
+        "max_features": ["sqrt", "log2"]
+    }
+
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+  
+    search = RandomizedSearchCV(
+        rf,
+        param_distributions=param_dist,
+        n_iter=15,
+        scoring="accuracy",
+        cv=cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    
+    search.fit(train_data_elimination, classification_train)
+    
+    tuned_model = search.best_estimator_
+
+    y_pred_train = tuned_model.predict(train_data_elimination)
+    y_pred_test = tuned_model.predict(test_data_elimination)
+    best_param = search.best_params_
+
+    return best_param, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
+
 # %%
