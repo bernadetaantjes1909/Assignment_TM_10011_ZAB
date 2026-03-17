@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,9 +26,11 @@ from sklearn.preprocessing import LabelEncoder
 
 
 #%%
-#random_forest_classifier
-def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance,feature_selection):
-    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection (load_data, preprocessing_data, deleting_zero_variance)
+def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn):
+    # Note: renamed parameter to feature_selection_fn to avoid shadowing the imported module
+    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection_fn(
+        load_data, preprocessing_data, deleting_zero_variance
+    )
 
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
@@ -40,7 +43,7 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
     }
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-  
+
     search = RandomizedSearchCV(
         rf,
         param_distributions=param_dist,
@@ -48,11 +51,15 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
-        random_state=42
+        random_state=42,
+        return_train_score=True  # lets you inspect train vs. validation gap
     )
-    
+
+    # Only fit on training data — test set is untouched
     search.fit(train_data_elimination, classification_train)
-    
+
+    best_params = search.best_params_
+    best_cv_score = search.best_score_          # mean CV accuracy on train folds
     tuned_model = search.best_estimator_
 
     y_pred_train = tuned_model.predict(train_data_elimination)
