@@ -18,7 +18,6 @@ def preprocessing_data(load_data):
     data_train, data_test, classification_train, classification_test = model_selection.train_test_split(
     data.iloc[:,2:], data['label'], test_size=0.20, random_state=42, stratify=data['label'] #door 42 is een standaard random dan hou je de zelfde manier 
     )
-#%%
 # scaling data
     scaler = preprocessing.RobustScaler()
     scaler.fit(data_train)

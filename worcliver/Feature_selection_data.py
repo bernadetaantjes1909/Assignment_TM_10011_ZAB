@@ -43,7 +43,7 @@ def feature_selection_RFE (load_data, preprocessing_data, deleting_zero_variance
     return train_data_elimination, test_data_elimination, classification_train, classification_test
 
 
-#feature selection with principle component analysis
+#feature selection using principle component analysis
 def feature_selection_PCA (load_data, preprocessing_data, deleting_zero_variance):
     train_data_filtered, test_data_filtered, classification_train, classification_test = deleting_zero_variance(load_data ,preprocessing_data)
 
