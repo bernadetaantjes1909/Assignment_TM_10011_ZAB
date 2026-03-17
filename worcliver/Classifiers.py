@@ -62,7 +62,7 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
     return best_param, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
 
 # %%
-# volgende classifier 
+# volgende classifier logistic
 def logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance):
 
     train_data_filtered, test_data_filtered, classification_train, classification_test = deleting_zero_variance(
