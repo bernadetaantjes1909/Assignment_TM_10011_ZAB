@@ -1,3 +1,4 @@
+#%%
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,9 +26,11 @@ from sklearn.preprocessing import LabelEncoder
 
 
 #%%
-#random_forest_classifier
-def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance,feature_selection):
-    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection (load_data, preprocessing_data, deleting_zero_variance)
+def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn):
+    # Note: renamed parameter to feature_selection_fn to avoid shadowing the imported module
+    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection_fn(
+        load_data, preprocessing_data, deleting_zero_variance
+    )
 
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
@@ -40,7 +43,7 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
     }
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-  
+
     search = RandomizedSearchCV(
         rf,
         param_distributions=param_dist,
@@ -48,39 +51,37 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
-        random_state=42
+        random_state=42,
+        return_train_score=True  # lets you inspect train vs. validation gap
     )
-    
+
+    # Only fit on training data — test set is untouched
     search.fit(train_data_elimination, classification_train)
-    
+
+    best_params = search.best_params_
+    best_cv_score = search.best_score_          # mean CV accuracy on train folds
     tuned_model = search.best_estimator_
 
-    y_pred_train = tuned_model.predict(train_data_elimination)
-    y_pred_test = tuned_model.predict(test_data_elimination)
-    best_param = search.best_params_
+    print(f"Best parameters: {best_params}")
+    print(f"Best cross-validated accuracy: {best_cv_score:.4f}")
 
-    return best_param, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
+    # Return test data too so it's ready when you need it later
+    return (
+        tuned_model,
+        best_params,
+        best_cv_score,
+        train_data_elimination,
+        test_data_elimination,
+        classification_train,
+        classification_test
+    )
 
+
+ # %%
+tuned_model, best_params, best_cv_score, train_data, test_data, y_train, y_test = random_forest_classifier(
+    load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn
+)
+
+print(f"Accuracy: {best_cv_score:.4f}")        # e.g. 0.9321
+print(f"Accuracy: {best_cv_score * 100:.2f}%") # e.g. 93.21%
 # %%
-# volgende classifier 
-def logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance):
-
-    train_data_filtered, test_data_filtered, classification_train, classification_test = deleting_zero_variance(
-        load_data, preprocessing_data
-    )
-
-    # Model
-    model = LogisticRegression(
-        solver="saga",   # nodig voor L1
-        l1_ratio=1,
-        max_iter=5000
-    )
-
-    # Train
-    model.fit(train_data_filtered, classification_train)
-
-    # Predict
-    y_pred_train = model.predict(train_data_filtered)
-    y_pred_test = model.predict(test_data_filtered)
-
-    return y_pred_train, y_pred_test, train_data_filtered, test_data_filtered, classification_train, classification_test

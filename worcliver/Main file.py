@@ -11,7 +11,6 @@ from sklearn import feature_selection
 from sklearn import preprocessing
 from sklearn import neighbors
 from sklearn import svm
-from sklearn.ensemble import RandomForestClassifier
 import importlib
 import Classifiers
 import Feature_selection_data
