@@ -62,6 +62,7 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
 
     print(f"Train accuracy random forest {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
     print(f"Test accuracy random forest {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(best_params)
 
     # ROC curve
     # ROC curve (binary classification)
@@ -174,7 +175,8 @@ def knn_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
 
     print(f"Train accuracy kNN {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
     print(f"Test accuracy kNN {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
-
+    print(best_params)
+    
     # ROC curve (binary classification)
     y_score_test = tuned_model.predict_proba(test_data_elimination)[:, 1]
 
