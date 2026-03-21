@@ -48,6 +48,7 @@ t_test_RFE_rf = ("Misclassified test: %d / %d" % ((classification_test != y_pred
 t_train_lr = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_lr).sum(), train_data_elimination.shape[0]))
 t_test_lr = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_lr).sum(), test_data_elimination.shape[0]))
 
+
 print(t_train_PCA_rf)
 print(t_test_PCA_rf)
 print(best_param_PCA_rf)
@@ -61,3 +62,6 @@ print(t_test_lr)
 
 
 # %%
+
+
+best_param_lr, y_pred_train_lr, y_pred_test_lr, train_data_filtered, test_data_filtered, classification_train, classification_test = logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance)
