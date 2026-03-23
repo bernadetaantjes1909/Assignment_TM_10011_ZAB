@@ -23,7 +23,27 @@ def deleting_zero_variance(load_data,preprocessing_data):
     train_data_filtered = np.delete(train_data_scaled, zero_indices, axis=1)
     test_data_filtered = np.delete(test_data_scaled, zero_indices, axis=1)
     return train_data_filtered, test_data_filtered, classification_train, classification_test
+#%%
 
+# 1. Data inladen
+# Let op: de haakjes () zijn nodig om de functie uit te voeren
+df = load_data() 
+
+def remove_correlated_features(df_input, threshold=0.995):
+    df_numeric = df_input.select_dtypes(include=[np.number])    # Dit zorgt ervoor dat de eerste 2 tekstkolommen automatisch worden overgeslagen
+    corr_matrix = df_numeric.corr().abs()    # Stap B: Correlatiematrix berekenen (absolute waarden)
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > threshold)]    # Stap D: Identificeer welke kolommen boven de 0.995 overlap zitten
+    # Rapportage
+    print(f"Totaal aantal kolommen: {df_input.shape[1]}")
+    print(f"Aantal numerieke kolommen geanalyseerd: {df_numeric.shape[1]}")
+    print(f"Aantal kolommen te verwijderen: {len(to_drop)}")
+    if len(to_drop) > 0:
+        print(f"De volgende kolommen worden verwijderd: {to_drop}")
+    df_dropped = df_input.drop(columns=to_drop)    # Stap E: Verwijder de kolommen uit de originele dataframe
+    return df_dropped, remove_correlated_features
+
+#%%
 
 # feature selection using recursive feature elimination
 def feature_selection_RFE (load_data, preprocessing_data, deleting_zero_variance):
