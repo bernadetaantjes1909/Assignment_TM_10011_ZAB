@@ -28,7 +28,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     search = RandomizedSearchCV(
         estimator=rf,
         param_distributions=param_dist,
-        n_iter=15,
+        n_iter=5, #WAS 15 PAS DIT WEER AAN
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -117,6 +117,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
         "roc_auc": roc_auc,
         "y_pred_train": y_pred_train,
         "y_pred_test": y_pred_test,
+        "y_score_test": y_score_test,
         "model": tuned_model
     }
 
@@ -227,6 +228,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         "roc_auc": roc_auc,
         "y_pred_train": y_pred_train,
         "y_pred_test": y_pred_test,
+        "y_score_test": y_score_test,
         "model": tuned_model
     }
 
@@ -235,11 +237,11 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 # SVM
 
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
-    svm_model = SVC(random_state=42, probability=True)
+    svm_model = SVC(random_state=42, probability=False)
 
     param_dist = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
-        "kernel": ["linear", "rbf"],
+        "C": [0.0001, 0.001], # WAS  [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
+        "kernel": ["linear"],
         "gamma": ["scale", "auto"]
     }
 
@@ -337,5 +339,6 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         "roc_auc": roc_auc,
         "y_pred_train": y_pred_train,
         "y_pred_test": y_pred_test,
+        "y_score_test": y_score_test,
         "model": tuned_model
     }
