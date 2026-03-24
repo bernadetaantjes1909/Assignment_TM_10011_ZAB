@@ -62,7 +62,7 @@ def feature_selection_PCA(X_train,X_test,y_train,y_test,n_components=20,var_thre
 #%%
 # feature selection RFE
 
-def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,step=20,var_threshold=0.01,corr_threshold=0.995): #STEP SIZE 20 ANDERS KLOPT HET NIET
+def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,step=200,var_threshold=0.01,corr_threshold=0.995): #STEP SIZE 1 ANDERS KLOPT HET NIET is nu 20 voor sneller lopen
     X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(X_train, X_test, y_train, y_test,var_threshold=var_threshold,corr_threshold=corr_threshold)
 
     n_features_to_select = min(n_features_to_select, X_train_filt.shape[1])
