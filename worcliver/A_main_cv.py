@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 import importlib
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -11,6 +12,7 @@ import A_preprocessing_cv
 import A_Feature_selection_cv
 import A_Classifiers_cv
 from sklearn import preprocessing
+from sklearn.metrics import roc_curve, auc
 
 
 importlib.reload(A_Classifiers_cv)
@@ -49,7 +51,10 @@ def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     outer_scores = []
-    print(f'{feature_selection}, {classifier}fold')
+    fold_aucs = []
+
+    plt.figure(figsize=(6, 6))
+
     for fold, (train, val) in enumerate(outer_cv.split(X_train_full, y_train_full), 1):
 
         X_train = X_train_full[train]
@@ -76,40 +81,34 @@ def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
 
         outer_scores.append(result["test_acc"])
 
+        # Gebruik scores/probabilities voor ROC, niet y_pred_test
+        if result["y_score_test"] is not None:
+            fpr, tpr, _ = roc_curve(y_val_fs, result["y_score_test"])
+            fold_auc = auc(fpr, tpr)
+            fold_aucs.append(fold_auc)
+
+            plt.plot(fpr, tpr, linewidth=1.5, label=f"Fold {fold} (AUC = {fold_auc:.3f})")
+
     mean_score = np.mean(outer_scores)
-    std_score  = np.std(outer_scores)
+    std_score = np.std(outer_scores)
+
+    plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title(f"Outer-CV ROC per fold - {name}")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
     print(f"\n{name} → CV accuracy: {mean_score:.3f} ± {std_score:.3f}")
-
-
-    #volgens mij is hier op de oorspronkelijke testdata
-
-    scaler = preprocessing.RobustScaler()
-    X_train_scaled = scaler.fit_transform(X_train_full)
-    X_test_scaled  = scaler.transform(X_test)
-
-    X_train_fs, X_test_fs, y_train_fs, y_test_fs, info = feature_selection(
-        X_train_scaled, X_test_scaled, y_train_full, y_test
-    )
-
-    final_result = classifier(
-        X_train_fs,
-        X_test_fs,
-        y_train_fs,
-        y_test_fs,
-        plot=True,
-        title_suffix=f"{name} FINAL"
-    )
 
     return {
         "name": name,
         "cv_mean": mean_score,
         "cv_std": std_score,
-        "test_acc": final_result["test_acc"],
-        "roc_auc": final_result["roc_auc"]
+        "cv_mean_auc": np.mean(fold_aucs) if len(fold_aucs) > 0 else None,
+        "cv_std_auc": np.std(fold_aucs) if len(fold_aucs) > 0 else None
     }
-
-
 #%% 
 results = []
 
