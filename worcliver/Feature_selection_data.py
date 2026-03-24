@@ -25,24 +25,16 @@ def deleting_zero_variance(load_data,preprocessing_data):
     return train_data_filtered, test_data_filtered, classification_train, classification_test
 #%%
 
-# 1. Data inladen
-# Let op: de haakjes () zijn nodig om de functie uit te voeren
-df = load_data() 
 
-def remove_correlated_features(df_input, threshold=0.995):
-    df_numeric = df_input.select_dtypes(include=[np.number])    # Dit zorgt ervoor dat de eerste 2 tekstkolommen automatisch worden overgeslagen
-    corr_matrix = df_numeric.corr().abs()    # Stap B: Correlatiematrix berekenen (absolute waarden)
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-    to_drop = [column for column in upper.columns if any(upper[column] > threshold)]    # Stap D: Identificeer welke kolommen boven de 0.995 overlap zitten
-    # Rapportage
-    print(f"Totaal aantal kolommen: {df_input.shape[1]}")
-    print(f"Aantal numerieke kolommen geanalyseerd: {df_numeric.shape[1]}")
-    print(f"Aantal kolommen te verwijderen: {len(to_drop)}")
-    if len(to_drop) > 0:
-        print(f"De volgende kolommen worden verwijderd: {to_drop}")
-    df_dropped = df_input.drop(columns=to_drop)    # Stap E: Verwijder de kolommen uit de originele dataframe
-    return df_dropped, remove_correlated_features
-
+def remove_correlated_features(load_data, preprocessing_data, threshold=0.995):
+    train_data_scaled, test_data_scaled, classification_train, classification_test = preprocessing_data(load_data)
+    corr_matrix = np.abs(np.corrcoef(train_data_scaled, rowvar=False))
+    upper_tri = np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
+    to_drop = [i for i in range(corr_matrix.shape[1]) if any(corr_matrix[i, j] > threshold for j in range(i+1, corr_matrix.shape[1]))]
+    train_data_filtered = np.delete(train_data_scaled, to_drop, axis=1)
+    test_data_filtered = np.delete(test_data_scaled, to_drop, axis=1)
+    print(f"Correlatie filter: {len(to_drop)} kolommen verwijderd.")
+    return train_data_filtered, test_data_filtered, classification_train, classification_test
 #%%
 
 # feature selection using recursive feature elimination
@@ -61,7 +53,6 @@ def feature_selection_RFE (load_data, preprocessing_data, deleting_zero_variance
 
     #print(f"optimal amount of features is {optimal}")
     return train_data_elimination, test_data_elimination, classification_train, classification_test
-
 
 #feature selection using principle component analysis
 def feature_selection_PCA (load_data, preprocessing_data, deleting_zero_variance):
