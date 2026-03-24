@@ -1,33 +1,27 @@
 #%%
+from re import search
+
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+
 from sklearn import datasets as ds
-from sklearn import decomposition
 
-from sklearn import model_selection
-from sklearn import metrics
-from sklearn import feature_selection
-from sklearn import preprocessing
-from sklearn import neighbors
-from sklearn import svm
+
+
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, learning_curve
+
 from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV
-from sklearn.linear_model import LogisticRegression
-from sklearn.feature_selection import SelectFromModel
-from sklearn.preprocessing import LabelEncoder
 
+from sklearn.metrics import accuracy_score, roc_curve, auc
 
-
-
-
+from sklearn.svm import SVC
 
 
 
 
 #%%
 def random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn):
-    # Note: renamed parameter to feature_selection_fn to avoid shadowing the imported module
     train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection_fn(
         load_data, preprocessing_data, deleting_zero_variance
     )
@@ -51,43 +45,303 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
-        random_state=42,
-        return_train_score=True  # lets you inspect train vs. validation gap
+        random_state=42
     )
 
-    # Only fit on training data — test set is untouched
+    # Only fit on training data
     search.fit(train_data_elimination, classification_train)
 
     best_params = search.best_params_
-    best_cv_score = search.best_score_          # mean CV accuracy on train folds
     tuned_model = search.best_estimator_
+
+    # Cross-validated accuracy (honest estimate)
+    print(f"Best CV accuracy random forest {feature_selection_fn.__name__}: {search.best_score_ * 100:.2f}%")
+
 
     y_pred_train = tuned_model.predict(train_data_elimination)
     y_pred_test = tuned_model.predict(test_data_elimination)
-    best_param = search.best_params_
+    # echte accuracy op test set (niet gebruikt voor hyperparameter tuning, dus eerlijk)
 
-    return best_param, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
+    train_acc = accuracy_score(classification_train, y_pred_train)
+    test_acc  = accuracy_score(classification_test, y_pred_test)
 
-# %%
-# volgende classifier logistic
-def logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance):
+    print(f"Train accuracy random forest {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
+    print(f"Test accuracy random forest {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(best_params)
 
-    train_data_filtered, test_data_filtered, classification_train, classification_test = deleting_zero_variance(
-        load_data, preprocessing_data
+    # ROC curve
+    # ROC curve (binary classification)
+    y_score_test = tuned_model.predict_proba(test_data_elimination)[:, 1]
+
+    fpr, tpr, thresholds = roc_curve(
+    classification_test,
+    y_score_test,
+    pos_label="malignant"
+    )
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(fpr, tpr, linewidth=2, label=f"ROC curve (AUC = {roc_auc:.3f})")
+    plt.plot([0, 1], [0, 1], linestyle="--", linewidth=1, label="Random classifier")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title(f"ROC Curve - Random Forest ({feature_selection_fn.__name__})")
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    plt.show()
+
+
+    # learning curve
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator=tuned_model,
+        X=train_data_elimination,
+        y=classification_train,
+        cv=cv,
+        scoring="accuracy",
+        train_sizes=np.linspace(0.1, 1.0, 5),
+        n_jobs=-1,
+        shuffle=True,
+        random_state=42
     )
 
-    # Model
-    model = LogisticRegression(
-        solver="saga",   # nodig voor L1
-        l1_ratio=1,
-        max_iter=5000
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+
+    val_scores_mean = np.mean(val_scores, axis=1)
+    val_scores_std = np.std(val_scores, axis=1)
+    plt.figure(figsize=(7, 5))
+    plt.plot(train_sizes, train_scores_mean, marker='o', label="Training accuracy")
+    plt.plot(train_sizes, val_scores_mean, marker='o', label="Validation accuracy")
+
+    plt.fill_between(
+        train_sizes,
+        train_scores_mean - train_scores_std,
+        train_scores_mean + train_scores_std,
+        alpha=0.2
+    )
+    plt.fill_between(
+        train_sizes,
+        val_scores_mean - val_scores_std,
+        val_scores_mean + val_scores_std,
+        alpha=0.2
+    )
+    plt.title(f"Trainingscurve - Random Forest ({feature_selection_fn.__name__})")
+
+    return best_params, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
+
+
+#%% 
+# knn classifier met hyperparameter search
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold
+
+def knn_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn):
+    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection_fn(
+        load_data, preprocessing_data, deleting_zero_variance
     )
 
-    # Train
-    model.fit(train_data_filtered, classification_train)
+    knn = KNeighborsClassifier()
 
-    # Predict
-    y_pred_train = model.predict(train_data_filtered)
-    y_pred_test = model.predict(test_data_filtered)
+    param_dist = {
+        "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
+        "weights": ["uniform", "distance"],
+        "metric": ["minkowski"],
+        "p": [1, 2]
+    }
 
-    return y_pred_train, y_pred_test, train_data_filtered, test_data_filtered, classification_train, classification_test
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    search = RandomizedSearchCV(
+        knn,
+        param_distributions=param_dist,
+        n_iter=15,
+        scoring="accuracy",
+        cv=cv,
+        n_jobs=-1,
+        random_state=42
+    )
+
+    # Only fit on training data
+    search.fit(train_data_elimination, classification_train)
+
+    best_params = search.best_params_
+    tuned_model = search.best_estimator_
+
+    # Cross-validated accuracy
+    print(f"Best CV accuracy kNN {feature_selection_fn.__name__}: {search.best_score_ * 100:.2f}%")
+
+    # Predictions
+    y_pred_train = tuned_model.predict(train_data_elimination)
+    y_pred_test = tuned_model.predict(test_data_elimination)
+
+    # echte accuracy op test set (niet gebruikt voor hyperparameter tuning, dus eerlijk)    train_acc = accuracy_score(classification_train, y_pred_train)
+    train_acc = accuracy_score(classification_train, y_pred_train)
+    test_acc  = accuracy_score(classification_test, y_pred_test)
+
+    print(f"Train accuracy kNN {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
+    print(f"Test accuracy kNN {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(best_params)
+    
+    # ROC curve (binary classification)
+    y_score_test = tuned_model.predict_proba(test_data_elimination)[:, 1]
+
+    fpr, tpr, thresholds = roc_curve(
+    classification_test,
+    y_score_test,
+    pos_label="malignant"
+    )
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(fpr, tpr, linewidth=2, label=f"ROC curve (AUC = {roc_auc:.3f})")
+    plt.plot([0, 1], [0, 1], linestyle="--", linewidth=1, label="Random classifier")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title(f"ROC Curve - Knn ({feature_selection_fn.__name__})")
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    plt.show()
+
+
+    # learning curve
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator=tuned_model,
+        X=train_data_elimination,
+        y=classification_train,
+        cv=cv,
+        scoring="accuracy",
+        train_sizes=np.linspace(0.1, 1.0, 5),
+        n_jobs=-1,
+        shuffle=True,
+        random_state=42
+    )
+
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+
+    val_scores_mean = np.mean(val_scores, axis=1)
+    val_scores_std = np.std(val_scores, axis=1)
+    plt.figure(figsize=(7, 5))
+    plt.plot(train_sizes, train_scores_mean, marker='o', label="Training accuracy")
+    plt.plot(train_sizes, val_scores_mean, marker='o', label="Validation accuracy")
+
+    plt.fill_between(
+        train_sizes,
+        train_scores_mean - train_scores_std,
+        train_scores_mean + train_scores_std,
+        alpha=0.2
+    )
+    plt.fill_between(
+        train_sizes,
+        val_scores_mean - val_scores_std,
+        val_scores_mean + val_scores_std,
+        alpha=0.2
+    )
+    plt.title(f"Trainingscurve - Knn ({feature_selection_fn.__name__})")
+
+    return best_params, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test
+
+
+#%% SVM classifier met hyperparameter search
+def svm_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_fn):
+    train_data_elimination, test_data_elimination, classification_train, classification_test = feature_selection_fn(
+        load_data, preprocessing_data, deleting_zero_variance
+    )
+
+    svm = SVC(random_state=42, probability=True, kernel="linear")
+
+    param_dist = {
+        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10],
+    }
+
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    search = RandomizedSearchCV(
+        svm,
+        param_distributions=param_dist,
+        n_iter=15,
+        scoring="accuracy",
+        cv=cv,
+        n_jobs=-1,
+        random_state=42
+    )
+
+    # Only fit on training data
+    search.fit(train_data_elimination, classification_train)
+
+    best_params = search.best_params_
+    tuned_model = search.best_estimator_
+
+    print(f"Best CV accuracy SVM {feature_selection_fn.__name__}: {search.best_score_ * 100:.2f}%")
+
+    y_pred_train = tuned_model.predict(train_data_elimination)
+    y_pred_test = tuned_model.predict(test_data_elimination)
+
+    train_acc = accuracy_score(classification_train, y_pred_train)
+    test_acc  = accuracy_score(classification_test, y_pred_test)
+
+    print(f"Train accuracy SVM {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
+    print(f"Test accuracy SVM {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(f"Best parameters SVM {feature_selection_fn.__name__}: {best_params}")
+
+    # ROC curve
+    y_score_test = tuned_model.predict_proba(test_data_elimination)[:, 1]
+
+    fpr, tpr, thresholds = roc_curve(
+        classification_test,
+        y_score_test,
+        pos_label="malignant"
+    )
+    roc_auc = auc(fpr, tpr)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(fpr, tpr, linewidth=2, label=f"ROC curve (AUC = {roc_auc:.3f})")
+    plt.plot([0, 1], [0, 1], linestyle="--", linewidth=1, label="Random classifier")
+    plt.xlabel("False Positive Rate")
+    plt.ylabel("True Positive Rate")
+    plt.title(f"ROC Curve - SVM ({feature_selection_fn.__name__})")
+    plt.legend(loc="lower right")
+    plt.grid(True)
+    plt.show()
+
+    # Learning curve
+    train_sizes, train_scores, val_scores = learning_curve(
+        estimator=tuned_model,
+        X=train_data_elimination,
+        y=classification_train,
+        cv=cv,
+        scoring="accuracy",
+        train_sizes=np.linspace(0.2, 1.0, 5),
+        n_jobs=-1,
+        shuffle=True,
+        random_state=42
+    )
+
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std  = np.std(train_scores,  axis=1)
+    val_scores_mean   = np.mean(val_scores,   axis=1)
+    val_scores_std    = np.std(val_scores,    axis=1)
+
+    plt.figure(figsize=(7, 5))
+    plt.plot(train_sizes, train_scores_mean, marker='o', label="Training accuracy")
+    plt.plot(train_sizes, val_scores_mean,   marker='o', label="Validation accuracy")
+    plt.fill_between(
+        train_sizes,
+        train_scores_mean - train_scores_std,
+        train_scores_mean + train_scores_std,
+        alpha=0.2
+    )
+    plt.fill_between(
+        train_sizes,
+        val_scores_mean - val_scores_std,
+        val_scores_mean + val_scores_std,
+        alpha=0.2
+    )
+    plt.xlabel("Training set size")
+    plt.ylabel("Accuracy")
+    plt.title(f"Learning Curve - SVM ({feature_selection_fn.__name__})")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    return best_params, y_pred_train, y_pred_test, train_data_elimination, test_data_elimination, classification_train, classification_test

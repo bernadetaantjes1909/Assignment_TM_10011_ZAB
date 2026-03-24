@@ -22,6 +22,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.preprocessing import LabelEncoder
 
 
+
 #%% load functions from other documents
 
 importlib.reload(Classifiers)
@@ -29,13 +30,18 @@ importlib.reload(Feature_selection_data)
 from load_data import load_data
 from Preprocessing_data import preprocessing_data
 from Feature_selection_data import deleting_zero_variance, feature_selection_PCA, feature_selection_RFE
-from Classifiers import random_forest_classifier, logistic_regression_classifier
+from Classifiers import random_forest_classifier, knn_classifier,svm_classifier #logistic_regression_classifier
 
 # vul in, soort feature selection(fs), en soort classifier(clf), op de volgende manier:
 #y_pred_train_fs_clf, y_pred_test_fs_clf, train_data_elimination, test_data_elimination, classification_train, classification_test = clf_function(load_data, preprocessing_data, deleting_zero_variance, fs_function)
 best_param_PCA_rf, y_pred_train_PCA_rf, y_pred_test_PCA_rf, train_data_elimination, test_data_elimination, classification_train, classification_test = random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_PCA)
 best_param_RFE_rf, y_pred_train_RFE_rf, y_pred_test_RFE_rf, train_data_elimination, test_data_elimination, classification_train, classification_test = random_forest_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_RFE)
-y_pred_train_lr, y_pred_test_lr, train_data_filtered, test_data_filtered, classification_train, classification_test = logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance)
+best_param_PCA_knn, y_pred_train_PCA_knn, y_pred_test_PCA_knn, train_data_elimination, test_data_elimination, classification_train, classification_test = knn_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_PCA)
+best_param_RFE_knn, y_pred_train_RFE_knn, y_pred_test_RFE_knn, train_data_elimination, test_data_elimination, classification_train, classification_test = knn_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_RFE)
+best_param_PCA_svm, y_pred_train_PCA_svm, y_pred_test_PCA_svm, train_data_elimination, test_data_elimination, classification_train, classification_test = svm_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_PCA)
+best_param_RFE_svm, y_pred_train_RFE_svm, y_pred_test_RFE_svm, train_data_elimination, test_data_elimination, classification_train, classification_test = svm_classifier(load_data, preprocessing_data, deleting_zero_variance, feature_selection_RFE)
+
+#y_pred_train_lr, y_pred_test_lr, train_data_filtered, test_data_filtered, classification_train, classification_test = logistic_regression_classifier(load_data, preprocessing_data, deleting_zero_variance)
 
 #%%
 classification_train = np.where(classification_train == 0, "malignant", "benign")
@@ -45,8 +51,16 @@ t_train_PCA_rf = ("Misclassified train: %d / %d" % ((classification_train != y_p
 t_test_PCA_rf = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_PCA_rf).sum(), test_data_elimination.shape[0]))
 t_train_RFE_rf = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_RFE_rf).sum(), train_data_elimination.shape[0]))
 t_test_RFE_rf = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_RFE_rf).sum(), test_data_elimination.shape[0]))
-t_train_lr = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_lr).sum(), train_data_elimination.shape[0]))
-t_test_lr = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_lr).sum(), test_data_elimination.shape[0]))
+t_train_PCA_svm = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_PCA_svm).sum(), train_data_elimination.shape[0]))
+t_test_PCA_svm = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_PCA_svm).sum(), test_data_elimination.shape[0]))
+t_train_RFE_svm = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_RFE_svm).sum(), train_data_elimination.shape[0]))
+t_test_RFE_svm = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_RFE_svm).sum(), test_data_elimination.shape[0]))
+t_train_PCA_knn = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_PCA_knn).sum(), train_data_elimination.shape[0]))
+t_test_PCA_knn = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_PCA_knn).sum(), test_data_elimination.shape[0]))
+t_train_RFE_knn = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_RFE_knn).sum(), train_data_elimination.shape[0]))
+t_test_RFE_knn = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_RFE_knn).sum(), test_data_elimination.shape[0]))
+#t_train_lr = ("Misclassified train: %d / %d" % ((classification_train != y_pred_train_lr).sum(), train_data_elimination.shape[0]))
+#t_test_lr = ("Misclassified test: %d / %d" % ((classification_test != y_pred_test_lr).sum(), test_data_elimination.shape[0]))
 
 print(t_train_PCA_rf)
 print(t_test_PCA_rf)
@@ -54,8 +68,21 @@ print(best_param_PCA_rf)
 print(t_train_RFE_rf)
 print(t_test_RFE_rf)
 print(best_param_RFE_rf)
-print(t_train_lr)
-print(t_test_lr)
+print(t_train_PCA_svm)
+print(t_test_PCA_svm)
+print(best_param_PCA_svm)
+print(t_train_RFE_svm)
+print(t_test_RFE_svm)
+print(best_param_RFE_svm)
+print(t_train_PCA_knn)
+print(t_test_PCA_knn)
+print(best_param_PCA_knn)
+print(t_train_RFE_knn)
+print(t_test_RFE_knn)
+print(best_param_RFE_knn)
+
+#print(t_train_lr)
+#print(t_test_lr)
 
 
 
