@@ -66,7 +66,7 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
     test_acc  = accuracy_score(classification_test, y_pred_test)
 
     print(f"Train accuracy random forest {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
-    print(f"Test accuracy random forest {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(f"Validation accuracy random forest {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
     print(best_params)
 
     # ROC curve
@@ -179,7 +179,7 @@ def knn_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
     test_acc  = accuracy_score(classification_test, y_pred_test)
 
     print(f"Train accuracy kNN {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
-    print(f"Test accuracy kNN {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(f"Validation accuracy kNN {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
     print(best_params)
     
     # ROC curve (binary classification)
@@ -281,7 +281,7 @@ def svm_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
     test_acc  = accuracy_score(classification_test, y_pred_test)
 
     print(f"Train accuracy SVM {feature_selection_fn.__name__}: {train_acc * 100:.2f}%")
-    print(f"Test accuracy SVM {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
+    print(f"Validation accuracy SVM {feature_selection_fn.__name__}: {test_acc * 100:.2f}%")
     print(f"Best parameters SVM {feature_selection_fn.__name__}: {best_params}")
 
     # ROC curve
