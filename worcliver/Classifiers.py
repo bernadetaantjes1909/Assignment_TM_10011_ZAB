@@ -248,7 +248,7 @@ def svm_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
         load_data, preprocessing_data, deleting_zero_variance
     )
 
-    svm = SVC(random_state=42, probability=True, kernel="linear")
+    svm = SVC(random_state=42, kernel="linear")
 
     param_dist = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1],
@@ -259,7 +259,7 @@ def svm_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
     search = RandomizedSearchCV(
         svm,
         param_distributions=param_dist,
-        n_iter=15,
+        n_iter=5,
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
