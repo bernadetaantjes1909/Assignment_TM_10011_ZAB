@@ -22,7 +22,7 @@ importlib.reload(A_preprocessing_cv)
 
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
-from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE
+from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
 from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier
 
 #%%
@@ -119,16 +119,25 @@ results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     feature_selection_RFE, random_forest_classifier, "RFE + RF"))
 print('ben hier 2')
 results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
+    feature_selection_L1, random_forest_classifier, "Lasso + RF"))
+
+results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     feature_selection_PCA, knn_classifier, "PCA + kNN"))
 
 results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     feature_selection_RFE, knn_classifier, "RFE + kNN"))
 
 results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
+    feature_selection_L1, knn_classifier, "Lasso + kNN"))
+
+results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     feature_selection_PCA, svm_classifier, "PCA + SVM"))
 
 results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     feature_selection_RFE, svm_classifier, "RFE + SVM"))
+
+results.append(evaluate_combination(X_train_full, y_train_full, X_test, y_test,
+    feature_selection_L1, svm_classifier, "Lasso + SVM"))
 
 results_df = pd.DataFrame(results)
 print("\n=== FINAL RESULTS ===")

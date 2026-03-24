@@ -30,9 +30,9 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
 
     param_dist = {
         "n_estimators": [100, 200, 300],
-        "max_depth": [None, 5, 10],
-        "min_samples_split": [2, 5],
-        "min_samples_leaf": [1, 2],
+        "max_depth": [3, 5, 8],
+        "min_samples_split": [5,10,15],
+        "min_samples_leaf": [2,4,6],
         "max_features": ["sqrt", "log2"]
     }
 
@@ -143,7 +143,7 @@ def knn_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
     knn = KNeighborsClassifier()
 
     param_dist = {
-        "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
+        "n_neighbors": [ 7, 9, 11, 15, 21],
         "weights": ["uniform", "distance"],
         "metric": ["minkowski"],
         "p": [1, 2]
@@ -251,7 +251,7 @@ def svm_classifier(load_data, preprocessing_data, deleting_zero_variance, featur
     svm = SVC(random_state=42, probability=True, kernel="linear")
 
     param_dist = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10],
+        "C": [0.0001, 0.001, 0.01, 0.1, 1],
     }
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
