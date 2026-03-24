@@ -45,7 +45,7 @@ def feature_selection_PCA(X_train,X_test,y_train,y_test,n_components=20,var_thre
     X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(X_train, X_test, y_train, y_test,var_threshold=var_threshold,corr_threshold=corr_threshold)
 
     max_components = min(n_components, X_train_filt.shape[1], X_train_filt.shape[0])
-    pca = decomposition.PCA(n_components=max_components)
+    pca = decomposition.PCA(n_components=max_components, svd_solver='randomized') #SVD SOLVER + RANDOMIZED VOOR VERSNELLEN CODE HAAL DIT WEG
     X_train_sel = pca.fit_transform(X_train_filt)
     X_test_sel = pca.transform(X_test_filt)
 
@@ -57,7 +57,7 @@ def feature_selection_PCA(X_train,X_test,y_train,y_test,n_components=20,var_thre
 #%%
 # feature selection RFE
 
-def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,step=1,var_threshold=0.01,corr_threshold=0.995):
+def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,step=20,var_threshold=0.01,corr_threshold=0.995): #STEP SIZE 20 ANDERS KLOPT HET NIET
     X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(X_train, X_test, y_train, y_test,var_threshold=var_threshold,corr_threshold=corr_threshold)
 
     n_features_to_select = min(n_features_to_select, X_train_filt.shape[1])
@@ -87,7 +87,7 @@ def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.1,threshold="median",
         solver="liblinear",
         C=C,
         random_state=42,
-        max_iter=5000
+        max_iter=1000 #WAS 5000 
     )
     selector = SelectFromModel(estimator=l1_model, threshold=threshold)
     selector.fit(X_train_filt, y_train)
