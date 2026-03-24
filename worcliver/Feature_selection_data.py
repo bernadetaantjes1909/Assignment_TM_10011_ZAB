@@ -36,6 +36,22 @@ def remove_correlated_features(load_data, preprocessing_data, threshold=0.995):
     print(f"Correlatie filter: {len(to_drop)} kolommen verwijderd.")
     return train_data_filtered, test_data_filtered, classification_train, classification_test
 
+def feature_selection(load_data, preprocessing_data, var_threshold=0.01, corr_threshold=0.995):
+    train_data, test_data, class_train, class_test = preprocessing_data(load_data)
+    variances = np.var(train_data, axis=0)
+    low_var_indices = np.where(variances < var_threshold)[0]
+    train_data = np.delete(train_data, low_var_indices, axis=1)
+    test_data = np.delete(test_data, low_var_indices, axis=1)
+    corr_matrix = np.abs(np.corrcoef(train_data, rowvar=False))
+    to_drop = set() # Gebruik een set om dubbele indices te voorkomen
+    for i in range(corr_matrix.shape[1]):
+        for j in range(i + 1, corr_matrix.shape[1]):
+            if corr_matrix[i, j] > corr_threshold:
+                to_drop.add(j)
+    to_drop_list = list(to_drop)
+    train_data_final = np.delete(train_data, to_drop_list, axis=1)
+    test_data_final = np.delete(test_data, to_drop_list, axis=1)
+    return train_data_final, test_data_final, class_train, class_test
 
 
 # feature selection using recursive feature elimination
