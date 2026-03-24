@@ -37,6 +37,8 @@ def feature_filtering(X_train, X_test, y_train, y_test, var_threshold=0.01, corr
     filter_info = {
         "n_features_after_filtering": X_train_final.shape[1]
     }
+    print(f'amount of features after filtering: {X_train_final.shape[1]}')
+
     return X_train_final, X_test_final, y_train, y_test, filter_info
 
 #%%
@@ -52,6 +54,8 @@ def feature_selection_PCA(X_train,X_test,y_train,y_test,n_components=20,var_thre
     info = {
         "n_components_used": max_components
     }
+    print(f'amount of features after selection: {X_train_sel.shape[1]}')
+
     return X_train_sel, X_test_sel, y_train, y_test, info
 
 #%%
@@ -75,6 +79,7 @@ def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,
         "n_features_selected": np.sum(rfe.support_)
     }
 
+    print(f'amount of features after selection: {X_train_sel.shape[1]}')
     return X_train_sel, X_test_sel, y_train, y_test, info
 
 #%%
@@ -97,7 +102,7 @@ def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.1,threshold="median",
     info = {
         "n_features_selected": np.sum(selector.get_support())
     }
-
+    print(f'amount of features after selection: {X_train_sel.shape[1]}')
     return X_train_sel, X_test_sel, y_train, y_test, info
 
 #%%
@@ -114,5 +119,5 @@ def feature_selection_univariate(X_train,X_test,y_train,y_test,k=20,var_threshol
     info = {
         "n_features_selected": np.sum(selector.get_support())
     }
-
+    print(f'amount of features after selection: {X_train_sel.shape[1]}')
     return X_train_sel, X_test_sel, y_train, y_test, info
