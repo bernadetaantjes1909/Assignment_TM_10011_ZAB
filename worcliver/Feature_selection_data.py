@@ -26,6 +26,17 @@ def deleting_zero_variance(load_data,preprocessing_data):
     test_data_filtered = np.delete(test_data_scaled, zero_indices, axis=1)
     return train_data_filtered, test_data_filtered, classification_train, classification_test
 
+def remove_correlated_features(load_data, preprocessing_data, threshold=0.995):
+    train_data_scaled, test_data_scaled, classification_train, classification_test = preprocessing_data(load_data)
+    corr_matrix = np.abs(np.corrcoef(train_data_scaled, rowvar=False))
+    upper_tri = np.triu(np.ones(corr_matrix.shape), k=1).astype(bool)
+    to_drop = [i for i in range(corr_matrix.shape[1]) if any(corr_matrix[i, j] > threshold for j in range(i+1, corr_matrix.shape[1]))]
+    train_data_filtered = np.delete(train_data_scaled, to_drop, axis=1)
+    test_data_filtered = np.delete(test_data_scaled, to_drop, axis=1)
+    print(f"Correlatie filter: {len(to_drop)} kolommen verwijderd.")
+    return train_data_filtered, test_data_filtered, classification_train, classification_test
+
+
 
 # feature selection using recursive feature elimination
 def feature_selection_RFE (load_data, preprocessing_data, deleting_zero_variance):
