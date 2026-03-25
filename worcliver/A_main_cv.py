@@ -14,7 +14,6 @@ import A_Classifiers_cv
 from sklearn import preprocessing
 from sklearn.metrics import roc_curve, auc
 
-
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
 importlib.reload(A_Load_data_cv)
@@ -23,7 +22,12 @@ importlib.reload(A_preprocessing_cv)
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
-from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier
+
+# ← PUT IT HERE with the other from imports
+from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier, \
+    random_forest_coarse_search, random_forest_fine_search, \
+    knn_coarse_search, knn_fine_search, \
+    svm_coarse_search, svm_fine_search
 
 #%%
 
@@ -44,6 +48,53 @@ combinations = [
     ("PCA", "SVM", feature_selection_PCA, svm_classifier),
     ("RFE", "SVM", feature_selection_RFE, svm_classifier),
 ]
+
+
+#%%
+# === HYPERPARAMETER OPTIMISATION ===
+# Run this section ONCE to find the best params.
+# After finding them, you can comment this whole section out
+# and paste the best params directly into the classifier functions.
+
+# Apply feature selection once on full training data to get data for search
+# We use PCA here as a representative — run separately for RFE/L1 if needed
+X_train_search, _, y_train_search, _, _ = feature_selection_PCA(
+    X_train_full, X_test, y_train_full, y_test
+)
+
+# --- Random Forest ---
+print("=== Random Forest coarse search ===")
+rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
+
+print("=== Random Forest fine search ===")
+rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
+
+print(f"\nFinal RF params to use: {rf_fine_params}")
+
+# --- kNN ---
+print("=== kNN coarse search ===")
+knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
+
+print("=== kNN fine search ===")
+knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
+
+print(f"\nFinal kNN params to use: {knn_fine_params}")
+
+# --- SVM ---
+print("=== SVM coarse search ===")
+svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
+
+print("=== SVM fine search ===")
+svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
+
+print(f"\nFinal SVM params to use: {svm_fine_params}")
+
+# === AFTER RUNNING THIS SECTION ONCE ===
+# Comment it out and paste the printed best params as fixed values
+# directly into the param_dist in each classifier function in A_Classifiers_cv.py
+# This way the final run skips searching and uses known best params directly.
+
+#%%
 
 def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
                         feature_selection, classifier, name):

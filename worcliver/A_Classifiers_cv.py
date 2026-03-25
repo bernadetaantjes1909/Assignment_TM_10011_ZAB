@@ -1,4 +1,3 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,9 +16,9 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
 
     param_dist = {
         "n_estimators": [100, 200, 300],
-        "max_depth": [None, 5, 10],
-        "min_samples_split": [2, 5],
-        "min_samples_leaf": [1, 2],
+        "max_depth": [3, 5, 7],
+        "min_samples_split": [5, 10,20],
+        "min_samples_leaf": [4, 8,16],
         "max_features": ["sqrt", "log2"]
     }
 
@@ -121,9 +120,78 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
         "model": tuned_model
     }
 
+
+#%%
+# Random Forest hyperparameter optimisation
+
+def random_forest_coarse_search(X_train, y_train):
+    rf = RandomForestClassifier(random_state=42, bootstrap=True)
+    param_dist_coarse = {
+        "n_estimators": [100, 200, 300],
+        "max_depth": [3, 5, 7],
+        "min_samples_split": [5, 10, 20],
+        "min_samples_leaf": [4, 8, 16],
+        "max_features": ["sqrt", "log2"]
+    }
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=rf,
+        param_distributions=param_dist_coarse,
+        n_iter=15,
+        scoring="accuracy",
+        cv=inner_cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"RF Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"RF Coarse best params: {search.best_params_}")
+    return search.best_params_
+
+
+def random_forest_fine_search(X_train, y_train, coarse_params):
+    rf = RandomForestClassifier(random_state=42, bootstrap=True)
+    param_dist_fine = {
+        "n_estimators": [
+            max(50, coarse_params["n_estimators"] - 50),
+            coarse_params["n_estimators"],
+            coarse_params["n_estimators"] + 50
+        ],
+        "max_depth": [
+            max(2, coarse_params["max_depth"] - 1),
+            coarse_params["max_depth"],
+            coarse_params["max_depth"] + 1
+        ],
+        "min_samples_split": [
+            max(2, coarse_params["min_samples_split"] - 2),
+            coarse_params["min_samples_split"],
+            coarse_params["min_samples_split"] + 2
+        ],
+        "min_samples_leaf": [
+            max(1, coarse_params["min_samples_leaf"] - 2),
+            coarse_params["min_samples_leaf"],
+            coarse_params["min_samples_leaf"] + 2
+        ],
+        "max_features": [coarse_params["max_features"]]
+    }
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=rf,
+        param_distributions=param_dist_fine,
+        n_iter=15,
+        scoring="accuracy",
+        cv=inner_cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"RF Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"RF Fine best params: {search.best_params_}")
+    return search.best_params_
+
+
 #%%
 # kNN
-
 def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
     knn = KNeighborsClassifier()
 
@@ -234,13 +302,67 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
 
 #%%
-# SVM
+# kNN hyperparameter optimisation
 
+def knn_coarse_search(X_train, y_train):
+    knn = KNeighborsClassifier()
+    param_dist_coarse = {
+        "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
+        "weights": ["uniform", "distance"],
+        "metric": ["minkowski"],
+        "p": [1, 2]
+    }
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=knn,
+        param_distributions=param_dist_coarse,
+        n_iter=15,
+        scoring="accuracy",
+        cv=inner_cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"kNN Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"kNN Coarse best params: {search.best_params_}")
+    return search.best_params_
+
+
+def knn_fine_search(X_train, y_train, coarse_params):
+    knn = KNeighborsClassifier()
+    param_dist_fine = {
+        "n_neighbors": [
+            max(1, coarse_params["n_neighbors"] - 2),
+            coarse_params["n_neighbors"],
+            coarse_params["n_neighbors"] + 2
+        ],
+        "weights": [coarse_params["weights"]],   # fix best value
+        "metric": ["minkowski"],
+        "p": [coarse_params["p"]]                # fix best value
+    }
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=knn,
+        param_distributions=param_dist_fine,
+        n_iter=3,
+        scoring="accuracy",
+        cv=inner_cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"kNN Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"kNN Fine best params: {search.best_params_}")
+    return search.best_params_
+
+
+#%%
+# SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
     X_train = X_train[:15] #DIT VERWIJDEREN
     y_train = y_train[:15] #DIT VERWIJDEREN
-    svm_model = SVC(random_state=42, probability=False, kernel= "linear", max_iter=100)
+    svm_model = SVC(random_state=42, probability=False, kernel="linear", max_iter=100)
 
     param_dist = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1]
@@ -275,7 +397,6 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     print(f"Validation accuracy SVM {title_suffix}: {test_acc * 100:.2f}%")
     print(f"Best parameters SVM {title_suffix}: {best_params}")
 
-    # altijd initialiseren
     y_score_test = None
     roc_auc = None
 
@@ -311,3 +432,49 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         "y_score_test": y_score_test,
         "model": tuned_model
     }
+
+
+#%%
+# SVM hyperparameter optimisation
+
+def svm_coarse_search(X_train, y_train):
+    svm_model = SVC(random_state=42, probability=False, kernel="linear")
+    param_dist_coarse = {
+        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
+    }
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=svm_model,
+        param_distributions=param_dist_coarse,
+        n_iter=6,
+        scoring="accuracy",
+        cv=cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"SVM Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"SVM Coarse best params: {search.best_params_}")
+    return search.best_params_
+
+
+def svm_fine_search(X_train, y_train, coarse_params):
+    svm_model = SVC(random_state=42, probability=False, kernel="linear")
+    best_C = coarse_params["C"]
+    param_dist_fine = {
+        "C": [best_C / 5, best_C / 2, best_C, best_C * 2, best_C * 5]
+    }
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    search = RandomizedSearchCV(
+        estimator=svm_model,
+        param_distributions=param_dist_fine,
+        n_iter=5,
+        scoring="accuracy",
+        cv=cv,
+        n_jobs=-1,
+        random_state=42
+    )
+    search.fit(X_train, y_train)
+    print(f"SVM Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
+    print(f"SVM Fine best params: {search.best_params_}")
+    return search.best_params_
