@@ -357,19 +357,18 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     svm_model = LinearSVC(random_state=42, max_iter=2000)
 
-    param_dist = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1,10]
+    param_grid = {                          # renamed from param_dist
+        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
     }
 
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)  # renamed from cv
 
     search = GridSearchCV(
         estimator=svm_model,
-        param_grid=param_grid,
+        param_grid=param_grid,              # now matches variable name
         scoring="accuracy",
-        cv=cv,
-        n_jobs=-1,
-        random_state=42,
+        cv=inner_cv,                        # now matches variable name
+        n_jobs=-1,                          # removed random_state
         refit=True
     )
 
@@ -412,12 +411,13 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         plt.legend(loc="lower right")
         plt.grid(True)
         plt.show()
-     if plot:
+
+    if plot:
         train_sizes, train_scores, val_scores = learning_curve(
             estimator=tuned_model,
             X=X_train,
             y=y_train,
-            cv=inner_cv,
+            cv=inner_cv,                    # now matches variable name
             scoring="accuracy",
             train_sizes=np.linspace(0.1, 1.0, 5),
             n_jobs=-1,
@@ -463,7 +463,6 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         "y_score_test": y_score_test,
         "model": tuned_model
     }
-
 
 #%%
 # SVM hyperparameter optimisation
