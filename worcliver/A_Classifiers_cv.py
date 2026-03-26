@@ -15,9 +15,9 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
     param_grid = {
-        "n_estimators": [150, 200, 250],
-        "max_depth": [6, 8, 10],
-        "min_samples_split": [1, 3, 5],
+        "n_estimators": [100, 150, 200, 250, 300],
+        "max_depth": [5, 6, 7, 8, 9, 10],
+        "min_samples_split": [ 3, 5, 7],
         "min_samples_leaf": [2, 4, 6],
         "max_features": ["sqrt", "log2"]
     }
@@ -301,7 +301,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 def knn_coarse_search(X_train, y_train):
     knn = KNeighborsClassifier()
     param_grid_coarse = {
-        "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
+        "n_neighbors": [3, 5, 7, 9, 11, 13, 15],
         "weights": ["uniform", "distance"],
         "metric": ["minkowski"],
         "p": [1, 2]
@@ -353,7 +353,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     svm_model = LinearSVC(random_state=42, max_iter=2000)
 
     param_grid = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
+        "C": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.01]
     }
 
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
