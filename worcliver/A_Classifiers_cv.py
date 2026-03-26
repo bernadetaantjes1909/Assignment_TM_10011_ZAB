@@ -6,7 +6,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 
-from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, learning_curve
+from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, GridSearchCV, learning_curve
 from sklearn.metrics import accuracy_score, roc_curve, auc
 
 
@@ -127,7 +127,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
 
 def random_forest_coarse_search(X_train, y_train):
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
-    param_dist_coarse = {
+    param_grid_coarse = {
         "n_estimators": [150, 200, 250],
         "max_depth": [6, 8, 10],
         "min_samples_split": [5, 7, 9],
@@ -135,10 +135,9 @@ def random_forest_coarse_search(X_train, y_train):
         "max_features": ["sqrt", "log2"]
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=rf,
-        param_distributions=param_dist_coarse,
-        n_iter=15,
+        param_grid=param_grid_coarse,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -176,10 +175,9 @@ def random_forest_fine_search(X_train, y_train, coarse_params):
         "max_features": [coarse_params["max_features"]]
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=rf,
-        param_distributions=param_dist_fine,
-        n_iter=15,
+        param_grid=param_grid_fine,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -196,7 +194,7 @@ def random_forest_fine_search(X_train, y_train, coarse_params):
 def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
     knn = KNeighborsClassifier()
 
-    param_dist = {
+    param_grid = {
         "n_neighbors": [15, 17, 19, 21, 23, 25, 27],
         "weights": ["uniform", "distance"],
         "metric": ["minkowski"],
@@ -205,10 +203,9 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=knn,
-        param_distributions=param_dist,
-        n_iter=15,
+        param_grid=param_grid,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -314,10 +311,9 @@ def knn_coarse_search(X_train, y_train):
         "p": [1, 2]
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=knn,
-        param_distributions=param_dist_coarse,
-        n_iter=15,
+        param_grid=param_grid_coarse,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -342,10 +338,9 @@ def knn_fine_search(X_train, y_train, coarse_params):
         "p": [coarse_params["p"]]                # fix best value
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=knn,
-        param_distributions=param_dist_fine,
-        n_iter=3,
+        param_grid=param_grid_fine,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -361,7 +356,7 @@ def knn_fine_search(X_train, y_train, coarse_params):
 # SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
-    svm_model = SVC(random_state=42, probability=False, kernel="linear", max_iter=100)
+    svm_model = LinearSVCSVC(random_state=42, max_iter=2000)
 
     param_dist = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1,10]
@@ -369,10 +364,9 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=svm_model,
-        param_distributions=param_dist,
-        n_iter=15, # WAS 15 PAS DIT WEER AAN
+        param_grid=param_grid
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
@@ -442,10 +436,9 @@ def svm_coarse_search(X_train, y_train):
         "C": [0.000001, 0.00001, 0.0001, 0.001, 0.01]
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=svm_model,
-        param_distributions=param_dist_coarse,
-        n_iter=15,
+        param_grid=param_grid_coarse,
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
@@ -464,9 +457,9 @@ def svm_fine_search(X_train, y_train, coarse_params):
         "C": [best_C / 5, best_C / 2, best_C, best_C * 2, best_C * 5]
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=svm_model,
-        param_distributions=param_dist_fine,
+        param_grid=param_grid_fine,
         n_iter=5,
         scoring="accuracy",
         cv=cv,
