@@ -54,16 +54,10 @@ scaler = RobustScaler()
 X_train_scaled = scaler.fit_transform(X_train_full)  # scale first
 X_test_scaled = scaler.transform(X_test)
 
-feature_methods = [
-    (" PCA", feature_selection_PCA),
-    (" RFE", feature_selection_RFE),    
-    (" Lasso", feature_selection_L1),
-]
+print("=== PCA Hyperparameter Search ===")
 
-for fs_name, fs_func in feature_methods:
-    print(f"\n=== Running hyperparameter search for {fs_name} ===")
 
-X_train_search, _, y_train_search, _, _ = fs_func(
+X_train_search, _, y_train_search, _, _ = feature_selection_PCA(
     X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
 )
 
@@ -93,6 +87,80 @@ print("=== SVM fine search ===")
 svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
 
 print(f"\nFinal SVM params to use: {svm_fine_params}")
+
+print("=== RFE Hyperparameter Search ===")
+
+
+X_train_search, _, y_train_search, _, _ = feature_selection_RFE(
+    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
+)
+
+# --- Random Forest ---
+print("=== Random Forest coarse search ===")
+rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
+
+print("=== Random Forest fine search ===")
+rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
+
+print(f"\nFinal RF params to use: {rf_fine_params}")
+
+# --- kNN ---
+print("=== kNN coarse search ===")
+knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
+
+print("=== kNN fine search ===")
+knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
+
+print(f"\nFinal kNN params to use: {knn_fine_params}")
+
+# --- SVM ---
+print("=== SVM coarse search ===")
+svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
+
+print("=== SVM fine search ===")
+svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
+
+print(f"\nFinal SVM params to use: {svm_fine_params}")
+
+print("=== Lasso Hyperparameter Search ===")
+
+
+X_train_search, _, y_train_search, _, _ = feature_selection_L1(
+    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
+)
+
+# --- Random Forest ---
+print("=== Random Forest coarse search ===")
+rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
+
+print("=== Random Forest fine search ===")
+rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
+
+print(f"\nFinal RF params to use: {rf_fine_params}")
+
+# --- kNN ---
+print("=== kNN coarse search ===")
+knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
+
+print("=== kNN fine search ===")
+knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
+
+print(f"\nFinal kNN params to use: {knn_fine_params}")
+
+# --- SVM ---
+print("=== SVM coarse search ===")
+svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
+
+print("=== SVM fine search ===")
+svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
+
+print(f"\nFinal SVM params to use: {svm_fine_params}")
+
+
+
+
+
+
 
 # === AFTER RUNNING THIS SECTION ONCE ===
 # Comment it out and paste the printed best params as fixed values

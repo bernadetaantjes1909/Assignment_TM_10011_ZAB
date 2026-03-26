@@ -85,7 +85,7 @@ def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,
 
 #%%
 #
-def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.01,threshold="mean",var_threshold=0.01,corr_threshold=0.995):
+def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.1,threshold="mean",var_threshold=0.01, max_features=20, corr_threshold=0.995):
     X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(X_train, X_test, y_train, y_test,var_threshold=var_threshold,corr_threshold=corr_threshold)
 
     l1_model = LogisticRegression(
