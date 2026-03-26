@@ -95,13 +95,8 @@ def feature_selection_L1(X_train, X_test, y_train, y_test, C=0.1, max_features=2
 
     # Fix warnings 1 & 2: use l1_ratio instead of penalty="l1"
     l1_model = LogisticRegression(
-<<<<<<< HEAD
-        penalty="l1",
-        solver="saga",
-=======
         solver="saga",          # supports l1_ratio
         l1_ratio=1,             # 1 = pure L1, same behaviour as penalty="l1"
->>>>>>> 95bf756e8c38ef9f9e65936cbf42d613e38f1ea8
         C=C,
         random_state=42,
         max_iter=10000           # fix warning 3: increase iterations
