@@ -19,7 +19,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
         "max_depth": [6, 8, 10],
         "min_samples_split": [1, 3, 5],
         "min_samples_leaf": [2, 4, 6],
-        "max_features": ["sqrt"]
+        "max_features": ["sqrt", "log2"]
     }
 
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
