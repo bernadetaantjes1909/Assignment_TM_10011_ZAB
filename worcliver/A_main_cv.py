@@ -39,15 +39,6 @@ X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
 # 2. Outer CV alleen op train set
 outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-results = []
-combinations = [
-    ("PCA", "RF", feature_selection_PCA, random_forest_classifier),
-    ("RFE", "RF", feature_selection_RFE, random_forest_classifier),
-    ("PCA", "kNN", feature_selection_PCA, knn_classifier),
-    ("RFE", "kNN", feature_selection_RFE, knn_classifier),
-    ("PCA", "SVM", feature_selection_PCA, svm_classifier),
-    ("RFE", "SVM", feature_selection_RFE, svm_classifier),
-]
 
 
 #%%
