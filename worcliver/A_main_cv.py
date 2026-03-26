@@ -23,7 +23,7 @@ from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
 
-# ← PUT IT HERE with the other from imports
+
 from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier, \
     random_forest_coarse_search, random_forest_fine_search, \
     knn_coarse_search, knn_fine_search, \
@@ -145,9 +145,9 @@ def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
         
         sizes, train_scores, val_scores = learning_curve(
         estimator=result["model"],   # jouw getrainde model
-        X=X_train_fs,
-        y=y_train_fs,
-        cv=3,                        # inner CV (kleiner houden)
+        X=X_train_full,
+        y=y_train_full,
+        cv=5,                        # inner CV (kleiner houden)
         scoring="accuracy",
         train_sizes=np.linspace(0.2, 1.0, 5),
         n_jobs=-1
