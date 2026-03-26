@@ -85,17 +85,31 @@ def feature_selection_RFE(X_train,X_test,y_train,y_test,n_features_to_select=20,
 
 #%%
 #
-def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.1,threshold="mean",var_threshold=0.01, max_features=20, corr_threshold=0.995):
-    X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(X_train, X_test, y_train, y_test,var_threshold=var_threshold,corr_threshold=corr_threshold)
+def feature_selection_L1(X_train, X_test, y_train, y_test, C=0.1, max_features=20,
+                         var_threshold=0.01, corr_threshold=0.995):
 
+    X_train_filt, X_test_filt, y_train, y_test, filter_info = feature_filtering(
+        X_train, X_test, y_train, y_test,
+        var_threshold=var_threshold, corr_threshold=corr_threshold
+    )
+
+    # Fix warnings 1 & 2: use l1_ratio instead of penalty="l1"
     l1_model = LogisticRegression(
-        penalty="l1",
-        solver="liblinear",
+        solver="saga",          # supports l1_ratio
+        penalty="elasticnet",   # required for l1_ratio with saga
+        l1_ratio=1,             # 1 = pure L1, same behaviour as penalty="l1"
         C=C,
         random_state=42,
-        max_iter=5000 
+        max_iter=5000           # fix warning 3: increase iterations
     )
-    selector = SelectFromModel(estimator=l1_model, threshold=threshold)
+
+    # Fix: use max_features properly
+    selector = SelectFromModel(
+        estimator=l1_model,
+        max_features=max_features,  # exactly 20 features
+        threshold=-np.inf           # required to enforce max_features
+    )
+
     selector.fit(X_train_filt, y_train)
     X_train_sel = selector.transform(X_train_filt)
     X_test_sel = selector.transform(X_test_filt)
@@ -103,7 +117,9 @@ def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.1,threshold="mean",va
     info = {
         "n_features_selected": np.sum(selector.get_support())
     }
+    print(f'amount of features after filtering: {X_train_filt.shape[1]}')
     print(f'amount of features after selection: {X_train_sel.shape[1]}')
+
     return X_train_sel, X_test_sel, y_train, y_test, info
 
 #%%
