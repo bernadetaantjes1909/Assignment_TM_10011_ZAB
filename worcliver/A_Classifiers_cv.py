@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
 from sklearn.svm import LinearSVC
 
 from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, GridSearchCV, learning_curve
@@ -15,10 +14,10 @@ from sklearn.metrics import accuracy_score, roc_curve, auc
 def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
-    param_dist = {
+    param_grid = {
         "n_estimators": [100, 150, 200],
         "max_depth": [5, 7, 9],
-        "min_samples_split": [5, 7,10],
+        "min_samples_split": [5, 7, 10],
         "min_samples_leaf": [2, 4, 6],
         "max_features": ["sqrt", "log2"]
     }
@@ -30,9 +29,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
         param_grid=param_grid,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42,
-        refit=True
+        n_jobs=-1
     )
 
     search.fit(X_train, y_train)
@@ -51,7 +48,9 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     print(f"Test accuracy Random Forest {title_suffix}: {test_acc * 100:.2f}%")
     print(f"Best parameters Random Forest {title_suffix}: {best_params}")
 
+    y_score_test = None
     roc_auc = None
+
     if hasattr(tuned_model, "predict_proba"):
         y_score_test = tuned_model.predict_proba(X_test)[:, 1]
         fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
@@ -139,8 +138,7 @@ def random_forest_coarse_search(X_train, y_train):
         param_grid=param_grid_coarse,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"RF Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
@@ -150,7 +148,7 @@ def random_forest_coarse_search(X_train, y_train):
 
 def random_forest_fine_search(X_train, y_train, coarse_params):
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
-    param_dist_fine = {
+    param_grid_fine = {
         "n_estimators": [
             max(50, coarse_params["n_estimators"] - 50),
             coarse_params["n_estimators"],
@@ -179,8 +177,7 @@ def random_forest_fine_search(X_train, y_train, coarse_params):
         param_grid=param_grid_fine,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"RF Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
@@ -207,9 +204,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         param_grid=param_grid,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42,
-        refit=True
+        n_jobs=-1
     )
 
     search.fit(X_train, y_train)
@@ -228,7 +223,9 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     print(f"Test accuracy kNN {title_suffix}: {test_acc * 100:.2f}%")
     print(f"Best parameters kNN {title_suffix}: {best_params}")
 
+    y_score_test = None
     roc_auc = None
+
     if hasattr(tuned_model, "predict_proba"):
         y_score_test = tuned_model.predict_proba(X_test)[:, 1]
         fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
@@ -303,7 +300,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
 def knn_coarse_search(X_train, y_train):
     knn = KNeighborsClassifier()
-    param_dist_coarse = {
+    param_grid_coarse = {
         "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
         "weights": ["uniform", "distance"],
         "metric": ["minkowski"],
@@ -315,8 +312,7 @@ def knn_coarse_search(X_train, y_train):
         param_grid=param_grid_coarse,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"kNN Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
@@ -326,15 +322,15 @@ def knn_coarse_search(X_train, y_train):
 
 def knn_fine_search(X_train, y_train, coarse_params):
     knn = KNeighborsClassifier()
-    param_dist_fine = {
+    param_grid_fine = {
         "n_neighbors": [
             max(1, coarse_params["n_neighbors"] - 2),
             coarse_params["n_neighbors"],
             coarse_params["n_neighbors"] + 2
         ],
-        "weights": [coarse_params["weights"]],   # fix best value
+        "weights": [coarse_params["weights"]],
         "metric": ["minkowski"],
-        "p": [coarse_params["p"]]                # fix best value
+        "p": [coarse_params["p"]]
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     search = GridSearchCV(
@@ -342,8 +338,7 @@ def knn_fine_search(X_train, y_train, coarse_params):
         param_grid=param_grid_fine,
         scoring="accuracy",
         cv=inner_cv,
-        n_jobs=-1,
-        random_state=42
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"kNN Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
@@ -357,19 +352,18 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     svm_model = LinearSVC(random_state=42, max_iter=2000)
 
-    param_grid = {                          # renamed from param_dist
+    param_grid = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
     }
 
-    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)  # renamed from cv
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     search = GridSearchCV(
         estimator=svm_model,
-        param_grid=param_grid,              # now matches variable name
+        param_grid=param_grid,
         scoring="accuracy",
-        cv=inner_cv,                        # now matches variable name
-        n_jobs=-1,                          # removed random_state
-        refit=True
+        cv=inner_cv,
+        n_jobs=-1
     )
 
     search.fit(X_train, y_train)
@@ -417,7 +411,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
             estimator=tuned_model,
             X=X_train,
             y=y_train,
-            cv=inner_cv,                    # now matches variable name
+            cv=inner_cv,
             scoring="accuracy",
             train_sizes=np.linspace(0.1, 1.0, 5),
             n_jobs=-1,
@@ -464,22 +458,22 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         "model": tuned_model
     }
 
+
 #%%
 # SVM hyperparameter optimisation
 
 def svm_coarse_search(X_train, y_train):
     svm_model = LinearSVC(random_state=42, max_iter=2000)
-    param_dist_coarse = {
+    param_grid_coarse = {
         "C": [0.000001, 0.00001, 0.0001, 0.001, 0.01]
     }
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     search = GridSearchCV(
         estimator=svm_model,
         param_grid=param_grid_coarse,
         scoring="accuracy",
-        cv=cv,
-        n_jobs=-1,
-        random_state=42
+        cv=inner_cv,
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"SVM Coarse best CV accuracy: {search.best_score_ * 100:.2f}%")
@@ -490,18 +484,16 @@ def svm_coarse_search(X_train, y_train):
 def svm_fine_search(X_train, y_train, coarse_params):
     svm_model = LinearSVC(random_state=42, max_iter=2000)
     best_C = coarse_params["C"]
-    param_dist_fine = {
+    param_grid_fine = {
         "C": [best_C / 5, best_C / 2, best_C, best_C * 2, best_C * 5]
     }
-    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     search = GridSearchCV(
         estimator=svm_model,
         param_grid=param_grid_fine,
-        n_iter=5,
         scoring="accuracy",
-        cv=cv,
-        n_jobs=-1,
-        random_state=42
+        cv=inner_cv,
+        n_jobs=-1
     )
     search.fit(X_train, y_train)
     print(f"SVM Fine best CV accuracy: {search.best_score_ * 100:.2f}%")
