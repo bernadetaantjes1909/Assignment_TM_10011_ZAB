@@ -90,7 +90,7 @@ def feature_selection_L1(X_train,X_test,y_train,y_test,C=0.01,threshold="mean",v
 
     l1_model = LogisticRegression(
         penalty="l1",
-        solver="liblinear",
+        solver="saga",
         C=C,
         random_state=42,
         max_iter=5000 
