@@ -161,6 +161,8 @@ def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
 
     mean_score = np.mean(outer_scores)
     std_score = np.std(outer_scores)
+    n = len(outer_scores)
+    ci95 = 1.96 * std_score / np.sqrt(n)
     mean_train = np.mean(all_train_scores, axis=0)
     std_train  = np.std(all_train_scores, axis=0)
     mean_val = np.mean(all_val_scores, axis=0)
@@ -188,7 +190,7 @@ def evaluate_combination(X_train_full, y_train_full, X_test, y_test,
     plt.grid(True)
     plt.show()
 
-    print(f"\n{name} → CV accuracy: {mean_score:.3f} ± {std_score:.3f}")
+    print(f"\n{name} → CV accuracy: {mean_score:.3f} ± {ci95:.3f}")
 
     return {
         "name": name,

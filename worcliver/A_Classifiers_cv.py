@@ -361,8 +361,6 @@ def knn_fine_search(X_train, y_train, coarse_params):
 # SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
-    X_train = X_train[:15] #DIT VERWIJDEREN
-    y_train = y_train[:15] #DIT VERWIJDEREN
     svm_model = SVC(random_state=42, probability=False, kernel="linear", max_iter=100)
 
     param_dist = {
@@ -374,7 +372,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     search = RandomizedSearchCV(
         estimator=svm_model,
         param_distributions=param_dist,
-        n_iter=5, # WAS 15 PAS DIT WEER AAN
+        n_iter=15, # WAS 15 PAS DIT WEER AAN
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
