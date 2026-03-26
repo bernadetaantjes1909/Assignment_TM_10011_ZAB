@@ -99,7 +99,7 @@ def feature_selection_L1(X_train, X_test, y_train, y_test, C=0.1, max_features=2
         l1_ratio=1,             # 1 = pure L1, same behaviour as penalty="l1"
         C=C,
         random_state=42,
-        max_iter=5000           # fix warning 3: increase iterations
+        max_iter=10000           # fix warning 3: increase iterations
     )
 
     # Fix: use max_features properly
