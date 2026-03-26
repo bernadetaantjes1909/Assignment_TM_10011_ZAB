@@ -439,7 +439,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 def svm_coarse_search(X_train, y_train):
     svm_model = LinearSVC(random_state=42, max_iter=2000)
     param_dist_coarse = {
-        "C": [0.000001, 0.00001 0.0001, 0.001, 0.01]
+        "C": [0.000001, 0.00001, 0.0001, 0.001, 0.01]
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     search = RandomizedSearchCV(
