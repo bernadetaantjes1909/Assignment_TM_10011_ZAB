@@ -15,11 +15,11 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
     param_grid = {
-        "n_estimators": [100, 150, 200],
-        "max_depth": [5, 7, 9],
-        "min_samples_split": [5, 7, 10],
+        "n_estimators": [150, 200, 250],
+        "max_depth": [6, 8, 10],
+        "min_samples_split": [1, 3, 5],
         "min_samples_leaf": [2, 4, 6],
-        "max_features": ["sqrt", "log2"]
+        "max_features": ["sqrt"]
     }
 
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
