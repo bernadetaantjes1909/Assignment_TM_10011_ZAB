@@ -439,9 +439,9 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 # SVM hyperparameter optimisation
 
 def svm_coarse_search(X_train, y_train):
-    svm_model = LinearSVC(random_state=42, probability=False, max_iter=2000)
+    svm_model = LinearSVC(random_state=42, max_iter=2000)
     param_dist_coarse = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
+        "C": [0.000001, 0.00001 0.0001, 0.001, 0.01]
     }
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
     search = RandomizedSearchCV(
@@ -460,7 +460,7 @@ def svm_coarse_search(X_train, y_train):
 
 
 def svm_fine_search(X_train, y_train, coarse_params):
-    svm_model = SVC(random_state=42, probability=False, kernel="linear")
+    svm_model = LinearSVC(random_state=42, max_iter=2000)
     best_C = coarse_params["C"]
     param_dist_fine = {
         "C": [best_C / 5, best_C / 2, best_C, best_C * 2, best_C * 5]
