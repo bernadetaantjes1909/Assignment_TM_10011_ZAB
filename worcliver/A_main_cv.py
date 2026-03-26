@@ -12,6 +12,7 @@ import A_preprocessing_cv
 import A_Feature_selection_cv
 import A_Classifiers_cv
 from sklearn import preprocessing
+from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import roc_curve, auc
 
 importlib.reload(A_Classifiers_cv)
@@ -49,8 +50,21 @@ outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 # Apply feature selection once on full training data to get data for search
 # We use PCA here as a representative — run separately for RFE/L1 if needed
-X_train_search, _, y_train_search, _, _ = feature_selection_PCA(
-    X_train_full, X_test, y_train_full, y_test
+scaler = RobustScaler()
+X_train_scaled = scaler.fit_transform(X_train_full)  # scale first
+X_test_scaled = scaler.transform(X_test)
+
+feature_methods = [
+    (" PCA", feature_selection_PCA),
+    (" RFE", feature_selection_RFE),    
+    (" Lasso", feature_selection_L1),
+]
+
+for fs_name, fs_func in feature_methods:
+    print(f"\n=== Running hyperparameter search for {fs_name} ===")
+
+X_train_search, _, y_train_search, _, _ = fs_func(
+    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
 )
 
 # --- Random Forest ---
