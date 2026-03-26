@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn.svm import LinearSVC
 
 from sklearn.model_selection import StratifiedKFold, RandomizedSearchCV, learning_curve
 from sklearn.metrics import accuracy_score, roc_curve, auc
@@ -15,10 +16,10 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
 
     param_dist = {
-        "n_estimators": [100, 200, 300],
-        "max_depth": [3, 5, 7],
-        "min_samples_split": [5, 10,20],
-        "min_samples_leaf": [4, 8,16],
+        "n_estimators": [100, 150, 200],
+        "max_depth": [5, 7, 9],
+        "min_samples_split": [5, 7,10],
+        "min_samples_leaf": [2, 4, 6],
         "max_features": ["sqrt", "log2"]
     }
 
@@ -27,7 +28,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
     search = RandomizedSearchCV(
         estimator=rf,
         param_distributions=param_dist,
-        n_iter=5, #WAS 15 PAS DIT WEER AAN
+        n_iter=15, 
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -127,10 +128,10 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
 def random_forest_coarse_search(X_train, y_train):
     rf = RandomForestClassifier(random_state=42, bootstrap=True)
     param_dist_coarse = {
-        "n_estimators": [100, 200, 300],
-        "max_depth": [3, 5, 7],
-        "min_samples_split": [5, 10, 20],
-        "min_samples_leaf": [4, 8, 16],
+        "n_estimators": [150, 200, 250],
+        "max_depth": [6, 8, 10],
+        "min_samples_split": [5, 7, 9],
+        "min_samples_leaf": [2, 4, 6],
         "max_features": ["sqrt", "log2"]
     }
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -196,7 +197,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     knn = KNeighborsClassifier()
 
     param_dist = {
-        "n_neighbors": [3, 5, 7, 9, 11, 15, 21],
+        "n_neighbors": [15, 17, 19, 21, 23, 25, 27],
         "weights": ["uniform", "distance"],
         "metric": ["minkowski"],
         "p": [1, 2]
@@ -360,6 +361,8 @@ def knn_fine_search(X_train, y_train, coarse_params):
 # SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
+    X_train = X_train[:15] #DIT VERWIJDEREN
+    y_train = y_train[:15] #DIT VERWIJDEREN
     svm_model = SVC(random_state=42, probability=False, kernel="linear", max_iter=100)
 
     param_dist = {
@@ -371,7 +374,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     search = RandomizedSearchCV(
         estimator=svm_model,
         param_distributions=param_dist,
-        n_iter=15, # WAS 15 PAS DIT WEER AAN
+        n_iter=5, # WAS 15 PAS DIT WEER AAN
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
@@ -436,7 +439,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 # SVM hyperparameter optimisation
 
 def svm_coarse_search(X_train, y_train):
-    svm_model = SVC(random_state=42, probability=False, kernel="linear")
+    svm_model = LinearSVC(random_state=42, probability=False, max_iter=2000)
     param_dist_coarse = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1, 10]
     }
@@ -444,7 +447,7 @@ def svm_coarse_search(X_train, y_train):
     search = RandomizedSearchCV(
         estimator=svm_model,
         param_distributions=param_dist_coarse,
-        n_iter=6,
+        n_iter=15,
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
