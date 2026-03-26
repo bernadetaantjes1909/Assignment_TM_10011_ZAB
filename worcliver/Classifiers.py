@@ -30,8 +30,8 @@ def random_forest_classifier(load_data, preprocessing_data, deleting_zero_varian
 
     param_dist = {
         "n_estimators": [100, 200, 300],
-        "max_depth": [3, 5, 8],
-        "min_samples_split": [5,10,15],
+        "max_depth": [3, 5, 8, 10],
+        "min_samples_split": [2, 5, 10, 15],
         "min_samples_leaf": [2,4,6],
         "max_features": ["sqrt", "log2"]
     }

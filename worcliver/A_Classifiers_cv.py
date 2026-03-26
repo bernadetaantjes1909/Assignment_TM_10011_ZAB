@@ -361,12 +361,10 @@ def knn_fine_search(X_train, y_train, coarse_params):
 # SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
-    X_train = X_train
-    y_train = y_train 
-    svm_model = LinearSVC(random_state=42, probability=False, max_iter=100)
+    svm_model = SVC(random_state=42, probability=False, kernel="linear", max_iter=100)
 
     param_dist = {
-        "C": [0.0001, 0.001, 0.01, 0.1, 1]
+        "C": [0.0001, 0.001, 0.01, 0.1, 1,10]
     }
 
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -374,7 +372,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
     search = RandomizedSearchCV(
         estimator=svm_model,
         param_distributions=param_dist,
-        n_iter=15, 
+        n_iter=15, # WAS 15 PAS DIT WEER AAN
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
