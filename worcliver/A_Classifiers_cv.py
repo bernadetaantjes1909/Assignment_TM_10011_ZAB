@@ -25,10 +25,9 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
 
     inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-    search = RandomizedSearchCV(
+    search = GridSearchCV(
         estimator=rf,
-        param_distributions=param_dist,
-        n_iter=15, 
+        param_grid=param_grid,
         scoring="accuracy",
         cv=inner_cv,
         n_jobs=-1,
@@ -356,7 +355,7 @@ def knn_fine_search(X_train, y_train, coarse_params):
 # SVM
 def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""):
 
-    svm_model = LinearSVCSVC(random_state=42, max_iter=2000)
+    svm_model = LinearSVC(random_state=42, max_iter=2000)
 
     param_dist = {
         "C": [0.0001, 0.001, 0.01, 0.1, 1,10]
@@ -366,7 +365,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     search = GridSearchCV(
         estimator=svm_model,
-        param_grid=param_grid
+        param_grid=param_grid,
         scoring="accuracy",
         cv=cv,
         n_jobs=-1,
