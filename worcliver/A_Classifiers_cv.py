@@ -380,6 +380,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         plt.show()
 
 
+
     return {
         "best_params": best_params,
         "best_cv_score": search.best_score_,
