@@ -137,3 +137,55 @@ def feature_selection_univariate(X_train,X_test,y_train,y_test,k=20,var_threshol
     }
     print(f'amount of features after selection: {X_train_sel.shape[1]}')
     return X_train_sel, X_test_sel, y_train, y_test, info
+
+#%%
+import pandas as pd
+import numpy as np                 # <--- Extra import
+from scipy.stats import normaltest
+from A_Load_data_cv import load_data
+
+# 1. Data inladen
+result = load_data()
+
+# 2. Omzetten naar DataFrame
+if isinstance(result, tuple):
+    # Als het een tuple is, pak het eerste element (meestal de features X)
+    data_array = result[0]
+else:
+    data_array = result
+
+# Zet de NumPy array om naar een Pandas DataFrame
+# We maken namen zoals 'Feature_0', 'Feature_1', etc.
+df = pd.DataFrame(data_array, columns=[f'Feature_{i}' for i in range(data_array.shape[1])])
+
+print(f"Data succesvol geladen. Aantal kolommen gevonden: {df.shape[1]}")
+
+# 3. De functie voor normaliteit (ongewijzigd)
+def check_normality(df, alpha=0.05):
+    results = []
+    
+    # Nu werkt select_dtypes wel, want df is een DataFrame
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    
+    for col in numeric_cols:
+        data = df[col].dropna()
+        if len(data) >= 8:
+            stat, p = normaltest(data)
+            is_normal = p > alpha
+            results.append({
+                'Feature': col,
+                'P-waarde': round(p, 4),
+                'Normaal verdeeld?': 'JA' if is_normal else 'NEE'
+            })
+    return pd.DataFrame(results)
+
+# 4. Voer de test uit
+normality_summary = check_normality(df)
+
+# Toon de eerste 10 resultaten
+print("\n--- Resultaten (Eerste 10 kolommen) ---")
+print(normality_summary.head(10))
+
+# Toon alleen de kolommen die NIET normaal zijn
+niet_normaal = normality_summary[normality_summary['Normaal verdeeld?'] == 'NEE']
+print(f"\nAantal features dat NIET normaal verdeeld is: {len(niet_normaal)}")
