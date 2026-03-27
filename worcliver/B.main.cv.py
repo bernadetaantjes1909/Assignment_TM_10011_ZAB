@@ -1,4 +1,6 @@
+#%%
 import numpy as np
+import importlib
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_predict
@@ -11,21 +13,29 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
+import A_Classifiers_cv
+import A_Feature_selection_cv
+import A_Load_data_cv
+import A_preprocessing_cv
+import B_Classifier
+import B_Feature_selection
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
 importlib.reload(A_Load_data_cv)
 importlib.reload(A_preprocessing_cv)
+importlib.reload(B_Classifier)
+importlib.reload(B_Feature_selection)
 
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
-
+from B_Classifier import classifiers  
+from B_Feature_selection import feature_selectors
 
 from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier, \
     random_forest_coarse_search, random_forest_fine_search, \
     knn_coarse_search, knn_fine_search, \
     svm_coarse_search, svm_fine_search
-
 #%%
 X,y = load_data()
 
@@ -35,59 +45,7 @@ X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
 # 2. Outer CV alleen op train set
 outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
-
-
 #%%
-feature_selectors = {
-    "PCA": {
-        "selector": PCA(),
-        "params": {
-            "feature_selection__n_components": [5, 10, 20, 30, 50]
-        }
-    },
-    "RFE": {
-        "selector": RFE(estimator=RandomForestClassifier(n_estimators=50, random_state=42)),
-        "params": {
-            "feature_selection__n_features_to_select": [5, 10, 20, 30]
-        }
-    },
-    "Lasso": {
-        "selector": SelectFromModel(
-            LogisticRegression(penalty="l1", solver="saga", max_iter=1000, random_state=42)
-        ),
-        "params": {
-            "feature_selection__estimator__C": [0.01, 0.1, 1.0, 10.0]
-        }
-    }
-}
-
-
-classifiers = {
-    "RF": {
-        "clf": RandomForestClassifier(random_state=42),
-        "params": {
-            "classifier__n_estimators": [50, 100, 200],
-            "classifier__max_depth": [None, 5, 10, 20],
-            "classifier__min_samples_split": [2, 5, 10]
-        }
-    },
-    "kNN": {
-        "clf": KNeighborsClassifier(),
-        "params": {
-            "classifier__n_neighbors": [3, 5, 7, 11, 15],
-            "classifier__weights": ["uniform", "distance"],
-            "classifier__metric": ["euclidean", "manhattan"]
-        }
-    },
-    "SVM": {
-        "clf": SVC(probability=True, random_state=42),
-        "params": {
-            "classifier__C": [0.1, 1.0, 10.0],
-            "classifier__kernel": ["rbf", "linear"],
-            "classifier__gamma": ["scale", "auto"]
-        }
-    }
-}
 
 
 
@@ -98,14 +56,19 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
     
     # Bouw de pipeline
     pipeline = Pipeline([
-        ("scaler", RobustScaler()),
         ("feature_selection", fs_config["selector"]),
         ("classifier", clf_config["clf"])
     ])
 
     # Combineer hyperparameters
-    param_grid = {**fs_config["params"], **clf_config["params"]}
-    
+    #param_grid = {**fs_config["params"], **clf_config["params"]}
+    param_grid = {}
+    for key, value in fs_config["params"].items():
+        param_grid[f"feature_selection__{key}"] = value
+        
+    for key, value in clf_config["params"].items():
+        param_grid[f"classifier__{key}"] = value
+        
     # Outer CV setup
     outer_cv = StratifiedKFold(n_splits=cv_outer, shuffle=True, random_state=42)
     inner_cv = StratifiedKFold(n_splits=cv_inner, shuffle=True, random_state=42)
