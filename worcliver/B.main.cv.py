@@ -64,6 +64,16 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
     for key, value in clf_config["params"].items():
         param_grid[f"classifier__{key}"] = value
 
+        param_grid = {}
+    
+    if "params" in fs_config:
+        for key, value in fs_config["params"].items():
+            param_grid[f"feature_selection__{key}"] = value
+            
+    if "params" in clf_config:
+        for key, value in clf_config["params"].items():
+            param_grid[f"classifier__{key}"] = value
+
     # Outer CV setup
     outer_cv = StratifiedKFold(n_splits=cv_outer, shuffle=True, random_state=42)
     inner_cv = StratifiedKFold(n_splits=cv_inner, shuffle=True, random_state=42)
