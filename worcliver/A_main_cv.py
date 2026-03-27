@@ -1,4 +1,8 @@
 #%%
+from os import name
+from unicodedata import name
+from unittest import result
+
 import numpy as np
 import pandas as pd
 import importlib
@@ -14,6 +18,7 @@ import A_Classifiers_cv
 from sklearn import preprocessing
 from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
@@ -282,7 +287,7 @@ from sklearn import preprocessing
 from sklearn.metrics import roc_curve, auc, accuracy_score
 from scipy.stats import t
 
-def evaluate_combination_testset(X_train_full, y_train_full, X_test, y_test,
+def final_evaluation(X_train_full, y_train_full, X_test, y_test,
                          feature_selection, classifier, name):
 
     plt.figure(figsize=(6, 6))
@@ -322,8 +327,16 @@ def evaluate_combination_testset(X_train_full, y_train_full, X_test, y_test,
         plt.show()
 
     print(f"{name} → Test accuracy: {test_acc:.3f}")
-    if test_auc is not None:
-        print(f"{name} → Test AUC: {test_auc:.3f}")
+ 
+
+    y_pred_test = result["y_pred_test"]
+    cm = confusion_matrix(y_test_fs, y_pred_test)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+    fig, ax = plt.subplots(figsize=(5, 5))
+    disp.plot(ax=ax)
+    plt.title(f"Confusion Matrix - {name}")
+    plt.grid(False)
+    plt.show()
 
     return {
         "name": name,
@@ -332,5 +345,6 @@ def evaluate_combination_testset(X_train_full, y_train_full, X_test, y_test,
     }
 # %%
 
-result = evaluate_combination_testset(X_train_full, y_train_full, X_test, y_test,
-    feature_selection_RFE, random_forest_classifier, "RFE + RF")
+result = final_evaluation(X_train_full, y_train_full, X_test, y_test,
+    feature_selection_RFE, svm_classifier, "RFE + SVM")
+# %%
