@@ -42,7 +42,7 @@ outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 
 
-#%%
+ #%%
 # === HYPERPARAMETER OPTIMISATION ===
 # Run this section ONCE to find the best params.
 # After finding them, you can comment this whole section out
@@ -170,33 +170,33 @@ print(f"\nFinal SVM params to use: {svm_fine_params}")
 #%%
 
 def evaluate_combination(X_train_full, y_train_full,
-                        feature_selection, classifier, name):
+                         feature_selection, classifier, name):
 
     outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     outer_scores = []
     fold_aucs = []
-    all_train_scores = []
-    all_val_scores = []
-    train_sizes = None
 
     plt.figure(figsize=(6, 6))
 
-    for fold, (train, val) in enumerate(outer_cv.split(X_train_full, y_train_full), 1):
+    for fold, (train_idx, val_idx) in enumerate(outer_cv.split(X_train_full, y_train_full), 1):
 
-        X_train = X_train_full[train]
-        X_val   = X_train_full[val]
-        y_train = y_train_full[train]
-        y_val   = y_train_full[val]
+        X_train = X_train_full[train_idx]
+        X_val   = X_train_full[val_idx]
+        y_train = y_train_full[train_idx]
+        y_val   = y_train_full[val_idx]
 
+        # Scale only on outer training fold
         scaler = preprocessing.RobustScaler()
         X_train = scaler.fit_transform(X_train)
         X_val   = scaler.transform(X_val)
 
+        # Feature selection only using outer training fold
         X_train_fs, X_val_fs, y_train_fs, y_val_fs, info = feature_selection(
             X_train, X_val, y_train, y_val
         )
 
+        # Train + inner CV hyperparameter tuning
         result = classifier(
             X_train_fs,
             X_val_fs,
@@ -208,57 +208,25 @@ def evaluate_combination(X_train_full, y_train_full,
 
         outer_scores.append(result["test_acc"])
 
-        # Gebruik scores/probabilities voor ROC, niet y_pred_test
+        # ROC/AUC on outer validation fold
         if result["y_score_test"] is not None:
             fpr, tpr, _ = roc_curve(y_val_fs, result["y_score_test"])
             fold_auc = auc(fpr, tpr)
             fold_aucs.append(fold_auc)
 
             plt.plot(fpr, tpr, linewidth=1.5, label=f"Fold {fold} (AUC = {fold_auc:.3f})")
-        
-        sizes, train_scores, val_scores = learning_curve(
-        estimator=result["model"],   # jouw getrainde model
-        X=X_train_fs,
-        y=y_train_fs,
-        cv=3,                        # inner CV (kleiner houden)
-        scoring="accuracy",
-        train_sizes=np.linspace(0.2, 1.0, 5),
-        n_jobs=-1
-        )
 
-        all_train_scores.append(np.mean(train_scores, axis=1))
-        all_val_scores.append(np.mean(val_scores, axis=1))
-
-        if train_sizes is None:
-            train_sizes = sizes
-
+    # Summary statistics
     mean_score = np.mean(outer_scores)
     std_score = np.std(outer_scores)
     n = len(outer_scores)
     ci95 = 1.96 * std_score / np.sqrt(n)
-    mean_train = np.mean(all_train_scores, axis=0)
-    std_train  = np.std(all_train_scores, axis=0)
-    mean_val = np.mean(all_val_scores, axis=0)
-    std_val  = np.std(all_val_scores, axis=0)
 
-    # plot ROC curve
+    # ROC plot
     plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
     plt.title(f"Outer-CV ROC per fold - {name}")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-
-    # plot learning curve
-    plt.figure(figsize=(7,5))
-    plt.plot(train_sizes, mean_train, marker='o', label="Train (mean)")
-    plt.plot(train_sizes, mean_val, marker='o', label="Validation (mean)")
-    plt.fill_between(train_sizes,mean_train - std_train,mean_train + std_train,alpha=0.2)
-    plt.fill_between(train_sizes,mean_val - std_val,mean_val + std_val,alpha=0.2)
-    plt.xlabel("Training set size")
-    plt.ylabel("Accuracy")
-    plt.title(f"Learning Curve (outer-CV mean) - {name}")
     plt.legend()
     plt.grid(True)
     plt.show()
@@ -269,6 +237,7 @@ def evaluate_combination(X_train_full, y_train_full,
         "name": name,
         "cv_mean": mean_score,
         "cv_std": std_score,
+        "cv_ci95": ci95,
         "cv_mean_auc": np.mean(fold_aucs) if len(fold_aucs) > 0 else None,
         "cv_std_auc": np.std(fold_aucs) if len(fold_aucs) > 0 else None
     }
@@ -344,14 +313,13 @@ def evaluate_combination_testset(X_train_full, y_train_full, X_test, y_test,
         test_auc = auc(fpr, tpr)
 
         plt.plot(fpr, tpr, linewidth=1.5, label=f"AUC = {test_auc:.3f}")
-
-    plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title(f"Test ROC - {name}")
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        plt.plot([0, 1], [0, 1], linestyle="--", label="Random")
+        plt.xlabel("False Positive Rate")
+        plt.ylabel("True Positive Rate")
+        plt.title(f"Test ROC - {name}")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
     print(f"{name} → Test accuracy: {test_acc:.3f}")
     if test_auc is not None:

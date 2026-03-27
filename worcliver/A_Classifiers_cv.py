@@ -253,45 +253,7 @@ def knn_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
             plt.grid(True)
             plt.show()
 
-    if plot:
-        train_sizes, train_scores, val_scores = learning_curve(
-            estimator=tuned_model,
-            X=X_train,
-            y=y_train,
-            cv=inner_cv,
-            scoring="accuracy",
-            train_sizes=np.linspace(0.1, 1.0, 5),
-            n_jobs=-1,
-            shuffle=True,
-            random_state=42
-        )
 
-        train_scores_mean = np.mean(train_scores, axis=1)
-        train_scores_std = np.std(train_scores, axis=1)
-        val_scores_mean = np.mean(val_scores, axis=1)
-        val_scores_std = np.std(val_scores, axis=1)
-
-        plt.figure(figsize=(7, 5))
-        plt.plot(train_sizes, train_scores_mean, marker="o", label="Training accuracy")
-        plt.plot(train_sizes, val_scores_mean, marker="o", label="Validation accuracy")
-        plt.fill_between(
-            train_sizes,
-            train_scores_mean - train_scores_std,
-            train_scores_mean + train_scores_std,
-            alpha=0.2
-        )
-        plt.fill_between(
-            train_sizes,
-            val_scores_mean - val_scores_std,
-            val_scores_mean + val_scores_std,
-            alpha=0.2
-        )
-        plt.xlabel("Training set size")
-        plt.ylabel("Accuracy")
-        plt.title(f"Learning Curve - kNN {title_suffix}")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
 
     return {
         "best_params": best_params,
@@ -417,45 +379,6 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
         plt.grid(True)
         plt.show()
 
-    if plot:
-        train_sizes, train_scores, val_scores = learning_curve(
-            estimator=tuned_model,
-            X=X_train,
-            y=y_train,
-            cv=inner_cv,
-            scoring="accuracy",
-            train_sizes=np.linspace(0.1, 1.0, 5),
-            n_jobs=-1,
-            shuffle=True,
-            random_state=42
-        )
-
-        train_scores_mean = np.mean(train_scores, axis=1)
-        train_scores_std = np.std(train_scores, axis=1)
-        val_scores_mean = np.mean(val_scores, axis=1)
-        val_scores_std = np.std(val_scores, axis=1)
-
-        plt.figure(figsize=(7, 5))
-        plt.plot(train_sizes, train_scores_mean, marker="o", label="Training accuracy")
-        plt.plot(train_sizes, val_scores_mean, marker="o", label="Validation accuracy")
-        plt.fill_between(
-            train_sizes,
-            train_scores_mean - train_scores_std,
-            train_scores_mean + train_scores_std,
-            alpha=0.2
-        )
-        plt.fill_between(
-            train_sizes,
-            val_scores_mean - val_scores_std,
-            val_scores_mean + val_scores_std,
-            alpha=0.2
-        )
-        plt.xlabel("Training set size")
-        plt.ylabel("Accuracy")
-        plt.title(f"Learning Curve - SVM {title_suffix}")
-        plt.legend()
-        plt.grid(True)
-        plt.show()
 
     return {
         "best_params": best_params,
