@@ -29,7 +29,7 @@ classifiers = {
         }
     }, 
     "kNN": {
-        "clf": RandomForestClassifier(random_state=42),
+        "clf": KNeighborsClassifier(),
         "params": {
             "n_neighbors": [15, 17, 19, 21, 23, 25, 27],
             "weights": ["uniform", "distance"],
@@ -38,7 +38,7 @@ classifiers = {
         }
     },
     "SVM": {
-        "clf": RandomForestClassifier(random_state=42),
+        "clf": SVC(probability=True, random_state=42),
         "params": {
             "C": [0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.01]
         }

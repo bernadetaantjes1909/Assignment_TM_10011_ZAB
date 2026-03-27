@@ -28,14 +28,9 @@ importlib.reload(B_Feature_selection)
 
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
-from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
 from B_Classifier import classifiers  
 from B_Feature_selection import feature_selectors
 
-from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier, \
-    random_forest_coarse_search, random_forest_fine_search, \
-    knn_coarse_search, knn_fine_search, \
-    svm_coarse_search, svm_fine_search
 #%%
 X,y = load_data()
 
@@ -68,7 +63,7 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
         
     for key, value in clf_config["params"].items():
         param_grid[f"classifier__{key}"] = value
-        
+
     # Outer CV setup
     outer_cv = StratifiedKFold(n_splits=cv_outer, shuffle=True, random_state=42)
     inner_cv = StratifiedKFold(n_splits=cv_inner, shuffle=True, random_state=42)
