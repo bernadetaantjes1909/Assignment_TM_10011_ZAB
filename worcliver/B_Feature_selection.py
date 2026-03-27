@@ -10,14 +10,14 @@ feature_selectors = {
     "PCA": {
         "selector": PCA(),
         "params": {
-            "n_components": [5, 10, 20, 30, 50]
+            "n_components": 20
         }   
     },
     "RFE": {
         "selector": RFE(estimator=SVC(kernel="linear")),
         "params": {
-            "n_features_to_select": [5, 10, 20, 30],
-            "step": [1, 5]
+            "n_features_to_select": 20,
+            "step": 1
         }
     },
     "Lasso_L1": {
@@ -25,14 +25,8 @@ feature_selectors = {
             LogisticRegression(penalty="l1", solver="saga", max_iter=10000, random_state=42)
         ),
         "params": {
-            "estimator__C": [0.01, 0.1, 1.0, 10.0],
-            "max_features": [20] 
+            "estimator__C": 0.1,
+            "max_features": 20 
         }
     },
-    "Univariate": {
-        "selector": SelectKBest(score_func=f_classif),
-        "params": {
-            "k": [5, 10, 20, 30]
-        }
-    }
 }

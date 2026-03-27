@@ -19,26 +19,26 @@ import A_Load_data_cv
 import A_preprocessing_cv
 import B_Classifier
 import B_Feature_selection
+import B.filtering_data
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
 importlib.reload(A_Load_data_cv)
 importlib.reload(A_preprocessing_cv)
 importlib.reload(B_Classifier)
 importlib.reload(B_Feature_selection)
+importlib.reload(B.filtering_data)
 
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from B_Classifier import classifiers  
 from B_Feature_selection import feature_selectors
+from B.filtering_data import feature_filtering
 
 #%%
 X,y = load_data()
 
 # 1. Load + split (fixed test set)
 X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
-
-# 2. Outer CV alleen op train set
-outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 #%%
 
@@ -89,6 +89,9 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
     for fold, (train_idx, val_idx) in enumerate(outer_cv.split(X, y), 1):
         X_train, X_val = X[train_idx], X[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
+
+        X_train,X_val, y_train,y_val = feature_filtering(X_train, X_val, y_train, y_val, var_threshold=0.01, corr_threshold=0.995)
+
         
         # Inner CV voor hyperparameter tuning
         grid_search = GridSearchCV(

@@ -326,8 +326,8 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
         plt.grid(True)
         plt.show()
 
-    print(f"{name} → Test accuracy: {test_acc:.3f}")
- 
+    print(f"{name} → Test accuracy: {test_acc:.3f}± {ci95:.3f}")
+    
 
     y_pred_test = result["y_pred_test"]
     cm = confusion_matrix(y_test_fs, y_pred_test)
