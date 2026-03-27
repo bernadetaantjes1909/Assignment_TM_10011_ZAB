@@ -3,7 +3,7 @@ from sklearn.decomposition import PCA
 from sklearn.feature_selection import SelectFromModel, SelectKBest, f_classif, RFE
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier # Optioneel, werd in je voorbeeld genoemd
+from sklearn.ensemble import RandomForestClassifier
 #%%
 
 feature_selectors = {

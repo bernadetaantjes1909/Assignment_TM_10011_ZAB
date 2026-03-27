@@ -19,20 +19,20 @@ import A_Load_data_cv
 import A_preprocessing_cv
 import B_Classifier
 import B_Feature_selection
-import B.filtering_data
+import B_filtering_data
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
 importlib.reload(A_Load_data_cv)
 importlib.reload(A_preprocessing_cv)
 importlib.reload(B_Classifier)
 importlib.reload(B_Feature_selection)
-importlib.reload(B.filtering_data)
+importlib.reload(B_filtering_data)
 
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from B_Classifier import classifiers  
 from B_Feature_selection import feature_selectors
-from B.filtering_data import feature_filtering
+from B_filtering_data import feature_filtering
 
 #%%
 X,y = load_data()
@@ -41,8 +41,6 @@ X,y = load_data()
 X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
 
 #%%
-
-
 
 def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
 
@@ -58,18 +56,12 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
     # Combineer hyperparameters
     #param_grid = {**fs_config["params"], **clf_config["params"]}
     param_grid = {}
-    for key, value in fs_config["params"].items():
-        param_grid[f"feature_selection__{key}"] = value
-        
+ 
     for key, value in clf_config["params"].items():
         param_grid[f"classifier__{key}"] = value
 
         param_grid = {}
-    
-    if "params" in fs_config:
-        for key, value in fs_config["params"].items():
-            param_grid[f"feature_selection__{key}"] = value
-            
+     
     if "params" in clf_config:
         for key, value in clf_config["params"].items():
             param_grid[f"classifier__{key}"] = value
@@ -170,3 +162,5 @@ print("="*60)
 print(results_df[["name", "cv_mean_acc", "cv_ci95", "cv_mean_auc"]]
       .sort_values(by="cv_mean_acc", ascending=False)
       .to_string(index=False))
+
+# %%
