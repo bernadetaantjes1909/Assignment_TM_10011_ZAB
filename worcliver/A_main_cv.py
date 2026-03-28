@@ -132,7 +132,7 @@ def evaluate_combination(X_train_full, y_train_full,
         X_val   = scaler.transform(X_val)
 
         #feature selection
-        X_train_fs, X_val_fs, y_train_fs, y_val_fs, info = feature_selection(
+        X_train_fs, X_val_fs, y_train_fs, y_val_fs = feature_selection(
             X_train, X_val, y_train, y_val
         )
 
@@ -223,7 +223,7 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
     X_train_scaled = scaler.fit_transform(X_train_full)
     X_test_scaled = scaler.transform(X_test)
 
-    X_train_fs, X_test_fs, y_train_fs, y_test_fs, info = feature_selection(
+    X_train_fs, X_test_fs, y_train_fs, y_test_fs = feature_selection(
         X_train_scaled, X_test_scaled, y_train_full, y_test
     )
 
@@ -308,7 +308,7 @@ def plot_learning_curve(X_train_full, y_train_full,
             X_train_sub = scaler.fit_transform(X_train_sub)
             X_val_scaled = scaler.transform(X_val)
 
-            X_train_fs, X_val_fs, y_train_fs, y_val_fs, info = feature_selection(
+            X_train_fs, X_val_fs, y_train_fs, y_val_fs = feature_selection(
                 X_train_sub, X_val_scaled, y_train_sub, y_val
             )
 
