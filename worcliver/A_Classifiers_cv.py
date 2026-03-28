@@ -59,7 +59,7 @@ def random_forest_classifier(X_train, X_test, y_train, y_test, plot=False, title
 
 # ROC curve
     y_score_test = tuned_model.predict_proba(X_test)[:, 1]
-    fpr, tpr = roc_curve(y_test, y_score_test)
+    fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
     roc_auc = auc(fpr, tpr)
 
     if plot:

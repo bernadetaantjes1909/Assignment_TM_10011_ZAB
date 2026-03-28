@@ -238,7 +238,7 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
     # ROC + AUC
     test_auc = None
     if result["y_score_test"] is not None:
-        fpr, tpr, _ = roc_curve(y_test_fs, result["y_score_test"])
+        fpr, tpr = roc_curve(y_test_fs, result["y_score_test"])
         test_auc = auc(fpr, tpr)
 
         plt.plot(fpr, tpr, linewidth=1.5, label=f"AUC = {test_auc:.3f}")
