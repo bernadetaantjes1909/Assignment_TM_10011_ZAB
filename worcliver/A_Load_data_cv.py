@@ -1,4 +1,6 @@
-#Load_data_cv
+#Load_data contains the function:
+#"Load_data": In this function the data is loaded and the column containing the classification is changed from 'benign'and 'malignant' to 0 and 1, respectively. 
+# The function returns the features (X) and the labels (y).
 
 import os
 import pandas as pd

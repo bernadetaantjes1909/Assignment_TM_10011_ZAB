@@ -42,7 +42,7 @@ X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
 
 #%%
 
-def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
+def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=5):
 
     fs_config = feature_selectors[fs_name]
     clf_config = classifiers[clf_name]
@@ -102,7 +102,7 @@ def evaluate_pipeline(X, y, fs_name, clf_name, cv_outer=5, cv_inner=3):
         y_pred = grid_search.predict(X_val)
         acc = accuracy_score(y_val, y_pred)
         outer_scores.append(acc)
-        
+        print(f"Fold {fold} → Accuracy: {acc:.3f} | Best Params: {grid_search.best_params_}")
         # ROC curve
         if hasattr(grid_search.best_estimator_.named_steps["classifier"], "predict_proba"):
             y_score = grid_search.predict_proba(X_val)[:, 1]
@@ -164,3 +164,42 @@ print(results_df[["name", "cv_mean_acc", "cv_ci95", "cv_mean_auc"]]
       .to_string(index=False))
 
 # %%
+# final results"
+
+final_result = evaluate_pipeline(x)
+
+fs_config = feature_selectors["RFE"]
+clf_config = classifiers["SVM"]
+inner_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    # Bouw de pipeline
+pipeline = Pipeline([
+        ("feature_selection", fs_config["selector"]),
+        ("classifier", clf_config["clf"])
+    ])
+param_grid = {}
+ 
+for key, value in clf_config["params"].items():
+        param_grid[f"classifier__{key}"] = value
+
+        param_grid = {}
+     
+if "params" in clf_config:
+        for key, value in clf_config["params"].items():
+            param_grid[f"classifier__{key}"] = value
+
+grid_search = GridSearchCV(
+            pipeline,
+            param_grid,
+            cv=inner_cv,
+            scoring="accuracy",
+            n_jobs=-1,
+            refit=True
+        )
+        
+grid_search.fit(X_train_full, y_train_full)
+
+        
+        # Evalueer op outer validation fold
+y_pred = grid_search.predict(X_test)
+acc = accuracy_score(y_test, y_pred)

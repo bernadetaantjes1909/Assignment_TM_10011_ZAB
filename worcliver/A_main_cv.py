@@ -1,24 +1,31 @@
-#%%
-from os import name
-from unicodedata import name
-from unittest import result
+#Main file:
+#In the main file, the different feature selection methods are combined with the different classifiers and these combinations are tested on the test data to see which has the highest accuracy. This file contains:
 
+#--> importing functions and other files
+#--> Imports data via load_data and splits data via "preprocessing_data
+#--> Determines the hyperparameter grid that is used for the grid search (this is manually changed in the classifier functions, this is already done!)
+#--> "evaluate_combination" combines the feature_selection_methods with the classifiers, performes a cross validation
+#--> "final_evaluation" performes the final evaluation of the best performing model on the testset
+#--> "plot_learning_curve" plots a learning curve for this final model 
+
+#%%
+#--> importing functions and other files
 import numpy as np
 import pandas as pd
 import importlib
 import matplotlib.pyplot as plt
-
-from sklearn.model_selection import StratifiedKFold, learning_curve
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import StratifiedKFold
+from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import roc_curve, auc, accuracy_score
+from sklearn.preprocessing import RobustScaler
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from scipy.stats import t
 
 import A_Load_data_cv
 import A_preprocessing_cv
 import A_Feature_selection_cv
 import A_Classifiers_cv
-from sklearn import preprocessing
-from sklearn.preprocessing import RobustScaler
-from sklearn.metrics import roc_curve, auc
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 importlib.reload(A_Classifiers_cv)
 importlib.reload(A_Feature_selection_cv)
@@ -28,152 +35,80 @@ importlib.reload(A_preprocessing_cv)
 from A_Load_data_cv import load_data
 from A_preprocessing_cv import preprocessing_data
 from A_Feature_selection_cv import feature_filtering, feature_selection_PCA, feature_selection_RFE, feature_selection_L1
-
-
 from A_Classifiers_cv import random_forest_classifier, knn_classifier, svm_classifier, \
     random_forest_coarse_search, random_forest_fine_search, \
     knn_coarse_search, knn_fine_search, \
     svm_coarse_search, svm_fine_search
 
 #%%
-
+#--> Imports data via load_data and splits data via "preprocessing_data"
 X,y = load_data()
-
-# 1. Load + split (fixed test set)
 X_train_full, X_test, y_train_full, y_test = preprocessing_data(X,y)
-
-# 2. Outer CV alleen op train set
 outer_cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
 
-
  #%%
-# === HYPERPARAMETER OPTIMISATION ===
-# Run this section ONCE to find the best params.
-# After finding them, you can comment this whole section out
-# and paste the best params directly into the classifier functions.
+ #--> Determines the hyperparameter grid that is used for the grid search (this is manually changed in the classifier functions, this is already done!)
 
-# Apply feature selection once on full training data to get data for search
-# We use PCA here as a representative — run separately for RFE/L1 if needed
+# This section is run once to find hyperparameter grid, that is changed in the classifier functions
+
 scaler = RobustScaler()
-X_train_scaled = scaler.fit_transform(X_train_full)  # scale first
+X_train_scaled = scaler.fit_transform(X_train_full)  
 X_test_scaled = scaler.transform(X_test)
 
-print("=== PCA Hyperparameter Search ===")
+#PCA----------------
+X_train_search, _, y_train_search, _, _ = feature_selection_PCA(X_train_scaled, X_test_scaled, y_train_full, y_test)
 
-
-X_train_search, _, y_train_search, _, _ = feature_selection_PCA(
-    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
-)
-
-# --- Random Forest ---
-print("=== Random Forest coarse search ===")
+#random forest
 rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
-
-print("=== Random Forest fine search ===")
 rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
-
 print(f"\nFinal RF params to use: {rf_fine_params}")
 
-# --- kNN ---
-print("=== kNN coarse search ===")
+#kNN
 knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
-
-print("=== kNN fine search ===")
 knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
-
 print(f"\nFinal kNN params to use: {knn_fine_params}")
 
-# --- SVM ---
-print("=== SVM coarse search ===")
+# SVM
 svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
-
-print("=== SVM fine search ===")
 svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
-
 print(f"\nFinal SVM params to use: {svm_fine_params}")
 
-print("=== RFE Hyperparameter Search ===")
-
-
-X_train_search, _, y_train_search, _, _ = feature_selection_RFE(
-    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
-)
-
-# --- Random Forest ---
-print("=== Random Forest coarse search ===")
+#RFE----------------
+X_train_search, _, y_train_search, _, _ = feature_selection_RFE(X_train_scaled, X_test_scaled, y_train_full, y_test)
+#random forest
 rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
-
-print("=== Random Forest fine search ===")
 rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
-
 print(f"\nFinal RF params to use: {rf_fine_params}")
 
-# --- kNN ---
-print("=== kNN coarse search ===")
+#kNN
 knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
-
-print("=== kNN fine search ===")
 knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
-
 print(f"\nFinal kNN params to use: {knn_fine_params}")
-
-# --- SVM ---
-print("=== SVM coarse search ===")
+# SVM
 svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
-
-print("=== SVM fine search ===")
 svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
-
 print(f"\nFinal SVM params to use: {svm_fine_params}")
 
-print("=== Lasso Hyperparameter Search ===")
-
-
-X_train_search, _, y_train_search, _, _ = feature_selection_L1(
-    X_train_scaled, X_test_scaled, y_train_full, y_test  # now scaled
-)
-
-# --- Random Forest ---
-print("=== Random Forest coarse search ===")
+#Lasso----------------
+X_train_search, _, y_train_search, _, _ = feature_selection_L1(X_train_scaled, X_test_scaled, y_train_full, y_test  )
+# Random Forest
 rf_coarse_params = random_forest_coarse_search(X_train_search, y_train_search)
-
-print("=== Random Forest fine search ===")
 rf_fine_params = random_forest_fine_search(X_train_search, y_train_search, rf_coarse_params)
-
 print(f"\nFinal RF params to use: {rf_fine_params}")
 
-# --- kNN ---
-print("=== kNN coarse search ===")
+# kNN
 knn_coarse_params = knn_coarse_search(X_train_search, y_train_search)
-
-print("=== kNN fine search ===")
 knn_fine_params = knn_fine_search(X_train_search, y_train_search, knn_coarse_params)
-
 print(f"\nFinal kNN params to use: {knn_fine_params}")
 
-# --- SVM ---
-print("=== SVM coarse search ===")
+# SVM
 svm_coarse_params = svm_coarse_search(X_train_search, y_train_search)
-
-print("=== SVM fine search ===")
 svm_fine_params = svm_fine_search(X_train_search, y_train_search, svm_coarse_params)
-
 print(f"\nFinal SVM params to use: {svm_fine_params}")
-
-
-
-
-
-
-
-# === AFTER RUNNING THIS SECTION ONCE ===
-# Comment it out and paste the printed best params as fixed values
-# directly into the param_dist in each classifier function in A_Classifiers_cv.py
-# This way the final run skips searching and uses known best params directly.
 
 #%%
-
+#--> "evaluate_combination" combines the feature_selection_methods with the classifiers, performes a cross validation
 def evaluate_combination(X_train_full, y_train_full,
                          feature_selection, classifier, name):
 
@@ -191,17 +126,17 @@ def evaluate_combination(X_train_full, y_train_full,
         y_train = y_train_full[train_idx]
         y_val   = y_train_full[val_idx]
 
-        # Scale only on outer training fold
+        # Scaler
         scaler = preprocessing.RobustScaler()
         X_train = scaler.fit_transform(X_train)
         X_val   = scaler.transform(X_val)
 
-        # Feature selection only using outer training fold
+        #feature selection
         X_train_fs, X_val_fs, y_train_fs, y_val_fs, info = feature_selection(
             X_train, X_val, y_train, y_val
         )
 
-        # Train + inner CV hyperparameter tuning
+        # Train classifier
         result = classifier(
             X_train_fs,
             X_val_fs,
@@ -210,10 +145,9 @@ def evaluate_combination(X_train_full, y_train_full,
             plot=False,
             title_suffix=f"{name} fold {fold}"
         )
-
         outer_scores.append(result["test_acc"])
 
-        # ROC/AUC on outer validation fold
+        # ROC/AUC 
         if result["y_score_test"] is not None:
             fpr, tpr, _ = roc_curve(y_val_fs, result["y_score_test"])
             fold_auc = auc(fpr, tpr)
@@ -221,7 +155,6 @@ def evaluate_combination(X_train_full, y_train_full,
 
             plt.plot(fpr, tpr, linewidth=1.5, label=f"Fold {fold} (AUC = {fold_auc:.3f})")
 
-    # Summary statistics
     mean_score = np.mean(outer_scores)
     std_score = np.std(outer_scores)
     n = len(outer_scores)
@@ -236,6 +169,7 @@ def evaluate_combination(X_train_full, y_train_full,
     plt.grid(True)
     plt.show()
 
+    # print mean accuracy for every combination
     print(f"\n{name} → CV accuracy: {mean_score:.3f} ± {ci95:.3f}")
 
     return {
@@ -247,45 +181,38 @@ def evaluate_combination(X_train_full, y_train_full,
         "cv_std_auc": np.std(fold_aucs) if len(fold_aucs) > 0 else None
     }
 #%% 
+# print results for all combinations
 results = []
 
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_PCA, random_forest_classifier, "PCA + RF"))
-print('ben hier 1')
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_RFE, random_forest_classifier, "RFE + RF"))
-print('ben hier 2')
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_L1, random_forest_classifier, "Lasso + RF"))
+feature_selectors = [
+    (feature_selection_PCA, "PCA"),
+    (feature_selection_RFE, "RFE"),
+    (feature_selection_L1, "Lasso")
+]
 
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_PCA, knn_classifier, "PCA + kNN"))
+classifiers = [
+    (random_forest_classifier, "RF"),
+    (knn_classifier, "kNN"),
+    (svm_classifier, "SVM")
+]
 
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_RFE, knn_classifier, "RFE + kNN"))
-
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_L1, knn_classifier, "Lasso + kNN"))
-
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_PCA, svm_classifier, "PCA + SVM"))
-
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_RFE, svm_classifier, "RFE + SVM"))
-
-results.append(evaluate_combination(X_train_full, y_train_full,
-    feature_selection_L1, svm_classifier, "Lasso + SVM"))
+for feature_selection, fs_name in feature_selectors:
+    for classifier, clf_name in classifiers:        
+        results.append(
+            evaluate_combination(
+                X_train_full,
+                y_train_full,
+                feature_selection,
+                classifier,
+                f"{fs_name} + {clf_name}"
+            )
+        )
 
 results_df = pd.DataFrame(results)
-print("\n=== FINAL RESULTS ===")
+print("FINAL RESULTS")
 print(results_df.sort_values(by="cv_mean", ascending=False))
 # %%
-#Best model tested on testset
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import preprocessing
-from sklearn.metrics import roc_curve, auc, accuracy_score
-from scipy.stats import t
+#--> "final_evaluation" performes the final evaluation of the best performing model on the testset
 
 def final_evaluation(X_train_full, y_train_full, X_test, y_test,
                          feature_selection, classifier, name):
@@ -307,10 +234,7 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
         y_test_fs,
         plot=False
     )
-
-    # Accuracy
     test_acc = result["test_acc"]
-
     # ROC + AUC
     test_auc = None
     if result["y_score_test"] is not None:
@@ -328,7 +252,7 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
 
     print(f"{name} → Test accuracy: {test_acc:.3f}± {ci95:.3f}")
     
-
+    # confusion matrix
     y_pred_test = result["y_pred_test"]
     cm = confusion_matrix(y_test_fs, y_pred_test)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
@@ -344,7 +268,89 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
         "test_auc": test_auc
     }
 # %%
-
 result = final_evaluation(X_train_full, y_train_full, X_test, y_test,
     feature_selection_RFE, svm_classifier, "RFE + SVM")
 # %%
+#--> "plot_learning_curve" plots a learning curve for this final model 
+def plot_learning_curve(X_train_full, y_train_full,
+                               feature_selection, classifier, name,
+                               train_sizes=np.linspace(0.1, 1.0, 8),
+                               n_splits=5,
+                               random_state=42):
+
+    cv = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+
+    train_sizes_abs = []
+    train_scores_mean = []
+    train_scores_std = []
+    val_scores_mean = []
+    val_scores_std = []
+
+    for frac in train_sizes:
+        fold_train_scores = []
+        fold_val_scores = []
+        current_train_size = []
+
+        for train_idx, val_idx in cv.split(X_train_full, y_train_full):
+            X_train = X_train_full[train_idx]
+            X_val   = X_train_full[val_idx]
+            y_train = y_train_full[train_idx]
+            y_val   = y_train_full[val_idx]
+
+            # take only a fraction of the training fold
+            n_sub = max(2, int(len(X_train) * frac))
+            X_train_sub = X_train[:n_sub]
+            y_train_sub = y_train[:n_sub]
+
+            current_train_size.append(len(X_train_sub))
+
+            scaler = preprocessing.RobustScaler()
+            X_train_sub = scaler.fit_transform(X_train_sub)
+            X_val_scaled = scaler.transform(X_val)
+
+            X_train_fs, X_val_fs, y_train_fs, y_val_fs, info = feature_selection(
+                X_train_sub, X_val_scaled, y_train_sub, y_val
+            )
+
+            result = classifier(
+                X_train_fs,
+                X_val_fs,
+                y_train_fs,
+                y_val_fs,
+                plot=False
+            )
+
+            val_acc = result["test_acc"]
+            fold_val_scores.append(val_acc)
+
+            if "y_pred_train" in result and result["y_pred_train"] is not None:
+                train_acc = accuracy_score(y_train_fs, result["y_pred_train"])
+                fold_train_scores.append(train_acc)
+
+        train_sizes_abs.append(int(np.mean(current_train_size)))
+
+        if len(fold_train_scores) > 0:
+            train_scores_mean.append(np.mean(fold_train_scores))
+            train_scores_std.append(np.std(fold_train_scores))
+        else:
+            train_scores_mean.append(np.nan)
+            train_scores_std.append(np.nan)
+
+        val_scores_mean.append(np.mean(fold_val_scores))
+        val_scores_std.append(np.std(fold_val_scores))
+
+    plt.figure(figsize=(7, 5))
+    plt.plot(train_sizes_abs, train_scores_mean, marker='o', label='Training accuracy')
+    plt.plot(train_sizes_abs, val_scores_mean, marker='o', label='Validation accuracy')
+    plt.fill_between(train_sizes_abs,np.array(train_scores_mean) - np.array(train_scores_std),np.array(train_scores_mean) + np.array(train_scores_std),alpha=0.2)
+    plt.fill_between(train_sizes_abs,np.array(val_scores_mean) - np.array(val_scores_std),np.array(val_scores_mean) + np.array(val_scores_std),alpha=0.2)
+    plt.xlabel("Training set size")
+    plt.ylabel("Accuracy")
+    plt.title(f"Learning Curve - {name}")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    #%%
+    #learning curve plotten
+    plot_learning_curve(X_train_full, y_train_full, feature_selection_RFE, random_forest_classifier,"RFE + Random Forest")

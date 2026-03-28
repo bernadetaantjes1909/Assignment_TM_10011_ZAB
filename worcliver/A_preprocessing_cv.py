@@ -1,16 +1,6 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn import datasets as ds
-from sklearn import decomposition
-
+#preprocessing contains the function:
+#"preprocessing_data":This function splits the data in a training set and a test set. 
 from sklearn import model_selection
-from sklearn import metrics
-from sklearn import feature_selection
-from sklearn import preprocessing
-from sklearn import neighbors
-from sklearn import svm
-from sklearn.ensemble import RandomForestClassifier
 
 def preprocessing_data(X,y):
 

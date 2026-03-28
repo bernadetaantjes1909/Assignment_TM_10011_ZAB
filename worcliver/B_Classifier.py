@@ -10,13 +10,8 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold
 from sklearn.metrics import roc_curve, auc, confusion_matrix, ConfusionMatrixDisplay
 
 #%%
-# 1. Definieer de Feature Selector
-feature_selector = SelectFromModel(
-    LogisticRegression(solver='saga', penalty='l1', l1_ratio=1, random_state=42),
-    max_features=20
-)
+
 # 2. De Classifiers Dictionary
-# LET OP: De parameters hebben nu 'classifier__' ervoor staan!
 classifiers = {
     "RF": {
         "clf": RandomForestClassifier(random_state=42),
