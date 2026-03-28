@@ -1,4 +1,5 @@
 # TM10011_PROJECT
+Project by Bernadet Aantjes, Anniek van Gent and Zus Geijsen
 The different steps of the machine learning algorithm are split in different documents."Load_data", "preprocessing_data", "feature_selection_data" and "classifiers" all contain functions that will be called on by functions in the following steps or in "Main file".
 When runnning "Main file" all results will be shown. 
 
