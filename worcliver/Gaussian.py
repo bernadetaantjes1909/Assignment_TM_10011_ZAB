@@ -11,7 +11,7 @@ from sklearn.preprocessing import LabelEncoder, RobustScaler
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.decomposition import PCA
  
-#%% [1] – Load data
+#%%  Load data
 print("Loading data...")
  
 this_directory = os.path.dirname(os.path.abspath(__file__))
@@ -25,7 +25,7 @@ y = data["label"]
 label_encoder = LabelEncoder()
 y_encoded = label_encoder.fit_transform(y)
  
-# Scale and remove zero-variance features
+
 scaler   = RobustScaler()
 X_scaled = scaler.fit_transform(X)
  
@@ -41,15 +41,8 @@ classes     = label_encoder.classes_           # ['benign', 'malignant']
 X_per_class = {cls: X_cleaned[y_encoded == i]
                for i, cls in enumerate(classes)}
  
-#%% [2] – TEST 1: Shapiro-Wilk normality test (per feature, per class)
-# ─────────────────────────────────────────────────────────────────────────────
-# Shapiro-Wilk tests whether a single feature follows a normal distribution.
-# H0: the data is normally distributed
-# If p < 0.05 → reject H0 → feature is NOT normally distributed
-#
-# We test every feature in every class and report what fraction passes.
-# If most features fail → Gaussian assumption does not hold → LDA/QDA invalid.
-# ─────────────────────────────────────────────────────────────────────────────
+#%%  Shapiro-Wilk normality test 
+
  
 print("\n" + "="*60)
 print("TEST 1 – Shapiro-Wilk normality test (per feature per class)")
@@ -79,9 +72,9 @@ for cls, X_cls in X_per_class.items():
           f"({100 - pct_normal:.1f}%)")
  
     if pct_normal < 50:
-        print(f"  → CONCLUSION: Majority of features are NOT normally distributed.")
-        print(f"    Gaussian assumption for LDA/QDA does NOT hold for class '{cls}'.")
+        print(f"  → CONCLUSION: Majority of features are not normally distributed.")
+        print(f"    Gaussian assumption for LDA/QDA does not hold for class '{cls}'.")
     else:
         print(f"  → CONCLUSION: Majority of features appear normally distributed.")
-        print(f"    Gaussian assumption MAY hold for class '{cls}'.")
+        print(f"    Gaussian assumption may hold for class '{cls}'.")
 # %%

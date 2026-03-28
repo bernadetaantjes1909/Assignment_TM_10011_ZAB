@@ -238,7 +238,7 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
     # ROC + AUC
     test_auc = None
     if result["y_score_test"] is not None:
-        fpr, tpr = roc_curve(y_test_fs, result["y_score_test"])
+        fpr, tpr, thresholds = roc_curve(y_test_fs, result["y_score_test"])
         test_auc = auc(fpr, tpr)
 
         plt.plot(fpr, tpr, linewidth=1.5, label=f"AUC = {test_auc:.3f}")
@@ -249,8 +249,9 @@ def final_evaluation(X_train_full, y_train_full, X_test, y_test,
         plt.legend()
         plt.grid(True)
         plt.show()
+    
 
-    print(f"{name} → Test accuracy: {test_acc:.3f}± {ci95:.3f}")
+    print(f"{name} → Test accuracy: {test_acc:.3f}")
     
     # confusion matrix
     y_pred_test = result["y_pred_test"]
@@ -353,4 +354,6 @@ def plot_learning_curve(X_train_full, y_train_full,
 
     #%%
     #learning curve plotten
-    plot_learning_curve(X_train_full, y_train_full, feature_selection_RFE, random_forest_classifier,"RFE + Random Forest")
+    plot_learning_curve(X_train_full, y_train_full, feature_selection_RFE, svm_classifier,"RFE + SVM")
+
+# %%

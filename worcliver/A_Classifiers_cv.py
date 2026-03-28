@@ -196,7 +196,7 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     # ROC curve
     y_score_test = tuned_model.decision_function(X_test)
-    fpr, tpr, _ = roc_curve(y_test, y_score_test)
+    fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
     roc_auc = auc(fpr, tpr)
 
     if plot and y_score_test is not None:
@@ -392,12 +392,12 @@ def svm_classifier(X_train, X_test, y_train, y_test, plot=False, title_suffix=""
 
     if hasattr(tuned_model, "decision_function"):
         y_score_test = tuned_model.decision_function(X_test)
-        fpr, tpr, _ = roc_curve(y_test, y_score_test)
+        fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
         roc_auc = auc(fpr, tpr)
 
     elif hasattr(tuned_model, "predict_proba"):
         y_score_test = tuned_model.predict_proba(X_test)[:, 1]
-        fpr, tpr, _ = roc_curve(y_test, y_score_test)
+        fpr, tpr, thresholds = roc_curve(y_test, y_score_test)
         roc_auc = auc(fpr, tpr)
 
     if plot and y_score_test is not None:
